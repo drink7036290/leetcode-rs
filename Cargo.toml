@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "implementations/*",
+#    "utilities/*",
+]
+
+# tells Cargo to use the newer dependency resolver,
+# which aligns with Rust 2021 edition and ensures compatibility with its features
+resolver = "2"
