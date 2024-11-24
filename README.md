@@ -9,7 +9,3 @@
 [actions-url]: https://github.com/drink7036290/leetcode-rs/actions?query=workflow%3ACI+branch%3Amain
 
 This repository contains practice solutions for LeetCode problems in Rust.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
