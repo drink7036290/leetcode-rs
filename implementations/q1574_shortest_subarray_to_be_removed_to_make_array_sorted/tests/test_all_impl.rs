@@ -2,6 +2,7 @@ use rstest::rstest;
 
 use q1574_shortest_subarray_to_be_removed_to_make_array_sorted::impl_v1::Solution as Solution_v1;
 use q1574_shortest_subarray_to_be_removed_to_make_array_sorted::impl_v2::Solution as Solution_v2;
+use q1574_shortest_subarray_to_be_removed_to_make_array_sorted::impl_v3::Solution as Solution_v3;
 
 #[rstest]
 #[case(vec![0, 16, 3, 13, 14, 11, 1, 24, 20, 20, 18, 15, 20], 10)]
@@ -23,4 +24,7 @@ fn test_all_impl(#[case] arr: Vec<i32>, #[case] expected: i32) {
 
     let result_v2 = Solution_v2::find_length_of_shortest_subarray(arr.clone());
     assert_eq!(expected, result_v2);
+
+    let result_v3 = Solution_v3::find_length_of_shortest_subarray(arr.clone());
+    assert_eq!(expected, result_v3);
 }
