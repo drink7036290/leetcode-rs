@@ -1,0 +1,9 @@
+[package]
+name = "q1_two_sum"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[dev-dependencies]
+rstest = "0.23.0"
