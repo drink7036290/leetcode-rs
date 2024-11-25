@@ -5,3 +5,7 @@ Cargo.lock
 .cargo/config
 
 .vscode/
+
+# coverage
+**/*.profraw
+lcov.info
