@@ -52,7 +52,7 @@ impl LFUCache {
                     self.pq.pop();
                 }
 
-                self.pq.push(key, Reverse(HeapNode::new(value)));
+                self.pq.push(key, Reverse(HeapNode::new(key, value)));
             }
         }
     }

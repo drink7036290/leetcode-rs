@@ -1,16 +1,17 @@
 use std::cmp::Ordering;
 use std::time::SystemTime;
 
-#[derive(Clone, Debug)]
 pub struct HeapNode {
+    pub key: i32,
     pub val: i32,
     pub freq: i32,
     pub last_access: SystemTime,
 }
 
 impl HeapNode {
-    pub fn new(val: i32) -> Self {
+    pub fn new(key: i32, val: i32) -> Self {
         HeapNode {
+            key,
             val,
             freq: 1,
             last_access: SystemTime::now(),
@@ -33,7 +34,7 @@ impl PartialOrd for HeapNode {
 impl Ord for HeapNode {
     fn cmp(&self, other: &Self) -> Ordering {
         match self.freq.cmp(&other.freq) {
-            Ordering::Equal => self.last_access.cmp(&other.last_access),
+            Ordering::Equal => self.last_access.cmp(&other.last_access), // min heap
             ord => ord,
         }
     }
