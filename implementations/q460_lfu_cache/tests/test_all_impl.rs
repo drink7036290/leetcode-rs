@@ -2,6 +2,7 @@ use rstest::rstest;
 
 use q460_lfu_cache::impl_v1::LFUCache as LFUCache_v1;
 use q460_lfu_cache::impl_v2::LFUCache as LFUCache_v2;
+use q460_lfu_cache::impl_v3::LFUCache as LFUCache_v3;
 
 #[rstest]
 #[case(vec!["LFUCache", "put", "put", "get", "put", "get", "get", "put", "get", "get", "get"], 
@@ -25,6 +26,7 @@ fn test_all_impl(
 
     let mut cache_v1 = LFUCache_v1::new(args_list[0][0]);
     let mut cache_v2 = LFUCache_v2::new(args_list[0][0]);
+    let mut cache_v3 = LFUCache_v3::new(args_list[0][0]);
 
     for (i, cmd) in cmds.iter().enumerate().skip(1) {
         let args = &args_list[i];
@@ -38,6 +40,7 @@ fn test_all_impl(
 
                     assert_eq!(cache_v1.get(key), v);
                     assert_eq!(cache_v2.get(key), v);
+                    assert_eq!(cache_v3.get(key), v);
                 }
                 None => {
                     panic!("expected value should not be None for cmd \"get\"");
@@ -54,6 +57,7 @@ fn test_all_impl(
 
                     cache_v1.put(key, value);
                     cache_v2.put(key, value);
+                    cache_v3.put(key, value);
                 }
             },
             _ => {
