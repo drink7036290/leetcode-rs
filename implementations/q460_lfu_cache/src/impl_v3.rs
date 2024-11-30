@@ -168,8 +168,11 @@ impl LFUCache {
         if let Some(freq_list) = self.freq_map.get_mut(&freq) {
             freq_list.remove(node_rc.clone());
 
-            if freq_list.is_empty() && (self.min_freq == freq) {
-                self.min_freq += 1;
+            if freq_list.is_empty() {
+                self.freq_map.remove(&freq);
+                if self.min_freq == freq {
+                    self.min_freq += 1;
+                }
             }
         }
 
