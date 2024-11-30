@@ -111,10 +111,10 @@ impl LFUCache {
                     // here A is NodeAdapter and Value is Node
                     // which means *const Node
                     // So all below syntax are valid
-                    //      &*node_rc
-                    //      node_rc.as_ref()
+                    //      &*node_rc           // miri error
+                    //      node_rc.as_ref()    // miri error
                     //      Rc::as_ptr(&node_rc)
-                    .cursor_mut_from_ptr(node_rc.as_ref())
+                    .cursor_mut_from_ptr(Rc::as_ptr(node_rc))
                     .remove()
                     .expect("node not found");
             }
