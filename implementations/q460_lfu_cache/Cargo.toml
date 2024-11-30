@@ -4,8 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-priority-queue = "2.0.3"
+priority-queue = "2.1.1"
 intrusive-collections = "0.9.7"
 
 [dev-dependencies]
 rstest = "0.23.0"
+proptest = "1.5.0"
