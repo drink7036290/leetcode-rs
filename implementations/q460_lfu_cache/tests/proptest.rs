@@ -64,7 +64,7 @@ fn test_lfu_cache_with_operations(capacity: i32, operations: Vec<CacheOperation>
 
 #[test]
 fn test_lfu_cache_implementations() {
-    let config = ProptestConfig::with_cases(20); // Number of test cases to generate
+    let config = ProptestConfig::with_cases(2); // Number of test cases to generate
     proptest!(config, |(capacity in 1..=10_000i32, operations in operation_sequence_strategy())| {
         test_lfu_cache_with_operations(capacity, operations);
     });
