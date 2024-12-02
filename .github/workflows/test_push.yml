@@ -1,7 +1,10 @@
 name: Test GITHUB_TOKEN Permissions
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   test_push:
