@@ -27,7 +27,7 @@ use q146_lru_cache::impl_v2::LRUCache as LRUCache_v2;
 use q146_lru_cache::impl_v3::LRUCache as LRUCache_v3;
 use q146_lru_cache::impl_v4::LRUCache as LRUCache_v4;
 
-macro_rules! bench_lfu_cache {
+macro_rules! bench_lru_cache {
     ($bench_name:ident, $cache_type:ty) => {
         fn $bench_name(c: &mut Criterion) {
             // Define the capacity as a constant or parameter
@@ -55,16 +55,16 @@ macro_rules! bench_lfu_cache {
     };
 }
 
-bench_lfu_cache!(bench_lfu_cache_v1, LRUCache_v1);
-bench_lfu_cache!(bench_lfu_cache_v2, LRUCache_v2);
-bench_lfu_cache!(bench_lfu_cache_v3, LRUCache_v3);
-bench_lfu_cache!(bench_lfu_cache_v4, LRUCache_v4);
+bench_lru_cache!(bench_lru_cache_v1, LRUCache_v1);
+bench_lru_cache!(bench_lru_cache_v2, LRUCache_v2);
+bench_lru_cache!(bench_lru_cache_v3, LRUCache_v3);
+bench_lru_cache!(bench_lru_cache_v4, LRUCache_v4);
 
 criterion_group!(
     benches,
-    bench_lfu_cache_v1,
-    bench_lfu_cache_v2,
-    bench_lfu_cache_v3,
-    bench_lfu_cache_v4,
+    bench_lru_cache_v1,
+    bench_lru_cache_v2,
+    bench_lru_cache_v3,
+    bench_lru_cache_v4,
 );
 criterion_main!(benches);
