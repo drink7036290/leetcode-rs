@@ -15,6 +15,12 @@ jobs:
   bench:
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+      with:
+        # Ensures the gh-pages branch is also checked out
+        fetch-depth: 0
+          
     - uses: actions/checkout@v4
     - name: Install Rust ${{ env.rust_stable }}
       uses: dtolnay/rust-toolchain@stable
@@ -22,7 +28,7 @@ jobs:
         toolchain: ${{ env.rust_stable }}
 
     - name: Install Dependencies
-      run: sudo apt-get install -y gnuplot
+      run: sudo apt update && sudo apt install -y gnuplot
 
     - name: Build and Run Benchmarks
       run: cargo bench
