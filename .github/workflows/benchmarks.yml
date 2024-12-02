@@ -1,0 +1,40 @@
+name: Benchmarks
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+  # Change to specific Rust release to pin
+  rust_stable: stable
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Rust ${{ env.rust_stable }}
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: ${{ env.rust_stable }}
+
+    - name: Install Dependencies
+      run: sudo apt update && sudo apt install -y gnuplot
+
+    - name: Build and Run Benchmarks
+      run: cargo bench
+
+    - name: Upload Benchmark Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results
+        path: target/criterion/
+
+    - name: Deploy Benchmark Report to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: target/criterion/report/
