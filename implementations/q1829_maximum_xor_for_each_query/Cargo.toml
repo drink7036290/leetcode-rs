@@ -1,9 +1,0 @@
-[package]
-name = "q1829_maximum_xor_for_each_query"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-
-[dev-dependencies]
-rstest = "0.23.0"
