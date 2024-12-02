@@ -31,6 +31,26 @@ jobs:
     steps:
       - run: exit 0
 
+  bench:
+    name: benchmarks
+    needs: basics
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Rust ${{ env.rust_stable }}
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: ${{ env.rust_stable }}
+    - name: Install Dependencies
+      run: sudo apt update && sudo apt install -y gnuplot
+    - name: Build and Run Benchmarks
+      run: cargo bench
+    - name: Upload Benchmark Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results
+        path: target/criterion/
+
   miri:
     name: miri
     needs: basics
