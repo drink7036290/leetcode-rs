@@ -1,4 +1,4 @@
-name: Rust
+name: Benchmarks
 
 on:
   push:
@@ -15,12 +15,6 @@ jobs:
   bench:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v3
-      with:
-        # Ensures the gh-pages branch is also checked out
-        fetch-depth: 0
-          
     - uses: actions/checkout@v4
     - name: Install Rust ${{ env.rust_stable }}
       uses: dtolnay/rust-toolchain@stable
@@ -40,7 +34,7 @@ jobs:
         path: target/criterion/
 
     - name: Deploy Benchmark Report to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
+      uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: target/criterion/report/
