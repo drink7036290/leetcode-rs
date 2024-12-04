@@ -32,15 +32,20 @@ jobs:
         with:
           toolchain: ${{ env.rust_nightly }}
           components: llvm-tools-preview
-        
+
       - uses: Swatinem/rust-cache@v2
-        
+
       - name: Install Dependencies
         run: sudo apt update && sudo apt install -y gnuplot
-        
+
       - name: Build and Run Benchmarks
         run: cargo bench -v
-        
+      
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov
+
       - name: Parse and Send Benchmark Data to InfluxDB, along with collecting coverage data
         run: |
           cargo llvm-cov --no-report run --release -p bench_util
@@ -52,7 +57,7 @@ jobs:
           INFLUXDB_BUCKET: ${{ secrets.INFLUXDB_BUCKET }}
           GIT_COMMIT_SHA: ${{ github.sha }}
           GIT_BRANCH: ${{ github.ref_name }}
-        
+
       - name: Upload coverage data to codecov
         uses: codecov/codecov-action@v5
         env:
