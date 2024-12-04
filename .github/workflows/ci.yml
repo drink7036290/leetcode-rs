@@ -39,7 +39,7 @@ jobs:
         run: sudo apt update && sudo apt install -y gnuplot
 
       - name: Build and Run Benchmarks
-        run: cargo bench -v
+        run: cargo bench # -v will be too noisy
       
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@v2
@@ -48,8 +48,7 @@ jobs:
 
       - name: Parse and Send Benchmark Data to InfluxDB, along with collecting coverage data
         run: |
-          cargo llvm-cov --no-report run --release -p bench_util
-          cargo llvm-cov report --doctests --lcov --output-path lcov_bench_util.info
+          cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info
         env:
           INFLUXDB_URL: ${{ secrets.INFLUXDB_URL }}
           INFLUXDB_TOKEN: ${{ secrets.INFLUXDB_TOKEN }}
