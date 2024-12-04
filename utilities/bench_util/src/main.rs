@@ -30,10 +30,9 @@ struct ConfidenceInterval {
     upper_bound: f64,
 }
 
-//fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn main() -> anyhow::Result<()> {
     // Load environment variables
-    dotenv()?;
+    dotenv().ok(); // consuming the error if no .env file
 
     // Fetch environment variables
     let influxdb_url = env::var("INFLUXDB_URL")?;
