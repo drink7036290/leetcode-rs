@@ -95,7 +95,7 @@ fn main() -> anyhow::Result<()> {
             estimates.mean.confidence_interval.upper_bound,
             estimates.mean.point_estimate,
             estimates.mean.standard_error,
-            
+
             estimates.median.confidence_interval.confidence_level,
             estimates.median.confidence_interval.lower_bound,
             estimates.median.confidence_interval.upper_bound,
@@ -119,7 +119,7 @@ fn main() -> anyhow::Result<()> {
             estimates.std_dev.confidence_interval.upper_bound,
             estimates.std_dev.point_estimate,
             estimates.std_dev.standard_error,
-            
+
             timestamp,
         );
 
