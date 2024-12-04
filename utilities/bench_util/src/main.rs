@@ -57,7 +57,7 @@ fn main() -> anyhow::Result<()> {
     let criterion_dir = workspace_root.join("target").join("criterion");
 
     // Iterate over all estimates.json files
-    for entry in WalkDir::new(&criterion_dir)
+    for entry in WalkDir::new(criterion_dir)
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| e.file_name() == "estimates.json")
@@ -81,29 +81,47 @@ fn main() -> anyhow::Result<()> {
         // Include all relevant statistics
         let line = format!(
             "benchmark,benchmark_name=\"{}\",branch=\"{}\",commit_sha=\"{}\" \
-            mean={},median={},std_dev={},slope={},median_abs_dev={},\
-            mean_lb={},mean_ub={},std_dev_lb={},std_dev_ub={},\
-            slope_lb={},slope_ub={},median_abs_dev_lb={},median_abs_dev_ub={} {}",
+            mean_confidence_level={},mean_lower_bound={},mean_upper_bound={},mean_point_estimate={},mean_standard_error={},\
+            median_confidence_level={},median_lower_bound={},median_upper_bound={},median_point_estimate={},median_standard_error={},\
+            median_abs_dev_confidence_level={},median_abs_dev_lower_bound={},median_abs_dev_upper_bound={},median_abs_dev_point_estimate={},median_abs_dev_standard_error={},\
+            slope_confidence_level={},slope_lower_bound={},slope_upper_bound={},slope_point_estimate={},slope_standard_error={},\
+            std_dev_confidence_level={},std_dev_lower_bound={},std_dev_upper_bound={},std_dev_point_estimate={},std_dev_standard_error={} {}",
             benchmark_name,
             git_branch,
             git_commit_sha,
-            estimates.mean.point_estimate,
-            estimates.median.point_estimate,
-            estimates.std_dev.point_estimate,
-            estimates.slope.point_estimate,
-            estimates.median_abs_dev.point_estimate,
+
+            estimates.mean.confidence_interval.confidence_level,
             estimates.mean.confidence_interval.lower_bound,
             estimates.mean.confidence_interval.upper_bound,
-            estimates.std_dev.confidence_interval.lower_bound,
-            estimates.std_dev.confidence_interval.upper_bound,
-            estimates.slope.confidence_interval.lower_bound,
-            estimates.slope.confidence_interval.upper_bound,
+            estimates.mean.point_estimate,
+            estimates.mean.standard_error,
+            
+            estimates.median.confidence_interval.confidence_level,
+            estimates.median.confidence_interval.lower_bound,
+            estimates.median.confidence_interval.upper_bound,
+            estimates.median.point_estimate,
+            estimates.median.standard_error,
+
+            estimates.median_abs_dev.confidence_interval.confidence_level,
             estimates.median_abs_dev.confidence_interval.lower_bound,
             estimates.median_abs_dev.confidence_interval.upper_bound,
+            estimates.median_abs_dev.point_estimate,
+            estimates.median_abs_dev.standard_error,
+
+            estimates.slope.confidence_interval.confidence_level,
+            estimates.slope.confidence_interval.lower_bound,
+            estimates.slope.confidence_interval.upper_bound,
+            estimates.slope.point_estimate,
+            estimates.slope.standard_error,
+
+            estimates.std_dev.confidence_interval.confidence_level,
+            estimates.std_dev.confidence_interval.lower_bound,
+            estimates.std_dev.confidence_interval.upper_bound,
+            estimates.std_dev.point_estimate,
+            estimates.std_dev.standard_error,
+            
             timestamp,
         );
-
-        //let _ = estimates.mean.standard_error;
 
         // Send the data to InfluxDB
         let url = format!(
