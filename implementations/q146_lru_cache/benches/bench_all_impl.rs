@@ -9,7 +9,7 @@ static OPERATIONS: Lazy<Vec<(u8, i32, i32)>> = Lazy::new(|| {
     // Generate random data here
     let mut rng = StdRng::seed_from_u64(SEED);
 
-    let num_operations = 2000; // Set the number of operations
+    let num_operations = 10_000; // Set the number of operations
     let mut operations = Vec::with_capacity(num_operations);
 
     for _ in 0..num_operations {
