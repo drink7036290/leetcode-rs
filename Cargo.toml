@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "implementations/*",
-#    "utilities/*",
+    "utilities/bench_util",
 ]
 
 # tells Cargo to use the newer dependency resolver,

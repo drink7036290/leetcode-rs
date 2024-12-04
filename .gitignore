@@ -9,3 +9,6 @@ Cargo.lock
 # coverage
 **/*.profraw
 lcov.info
+
+# bench
+**/.env
