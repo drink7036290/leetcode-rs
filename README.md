@@ -4,6 +4,7 @@
 [![Build Status][actions-badge]][actions-url]
 [![CodeFactor][CodeFactor-badge]][CodeFactor-url]
 [![codecov][codecov-badge]][codecov-url]
+[![Benchmark Results][benchmark-badge]][benchmark-url]
 
 [mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [mit-url]: https://github.com/drink7036290/leetcode-rs/blob/main/LICENSE
@@ -13,5 +14,7 @@
 [CodeFactor-url]: https://www.codefactor.io/repository/github/drink7036290/leetcode-rs
 [codecov-badge]: https://codecov.io/github/drink7036290/leetcode-rs/branch/main/graph/badge.svg?token=WLGOTCEPO3
 [codecov-url]: https://codecov.io/github/drink7036290/leetcode-rs
+[benchmark-badge]: https://img.shields.io/badge/Benchmarks-Grafana-red
+[benchmark-url]: https://planetsacademe0j.grafana.net/public-dashboards/e85f07d0beb84a688ae045b995a5e861
 
 This repository contains practice solutions for LeetCode problems in Rust.
