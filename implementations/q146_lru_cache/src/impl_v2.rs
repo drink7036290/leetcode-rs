@@ -7,6 +7,7 @@ use std::time::SystemTime;
 pub struct LRUCache {
     arr: Vec<HeapNode>,
     map: HashMap<i32, usize>, // key -> vec's index
+    capacity: usize,
 }
 
 /**
@@ -142,8 +143,9 @@ impl LRUCache {
 
     pub fn new(capacity: i32) -> Self {
         Self {
-            arr: Vec::with_capacity(capacity as usize),
-            map: HashMap::with_capacity(capacity as usize),
+            arr: Vec::new(),
+            map: HashMap::new(),
+            capacity: capacity as usize,
         }
     }
 
@@ -172,7 +174,7 @@ impl LRUCache {
         let index = match self.map.get(&key) {
             Some(v) => *v,
             None => {
-                if self.arr.len() == self.arr.capacity() {
+                if self.arr.len() == self.capacity {
                     let last_index = self.arr.len() - 1;
 
                     self.swap_nodes(0, last_index);
