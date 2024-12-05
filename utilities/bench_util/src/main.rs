@@ -39,8 +39,8 @@ fn main() -> anyhow::Result<()> {
     let influxdb_token = env::var("INFLUXDB_TOKEN")?;
     let influxdb_org = env::var("INFLUXDB_ORG")?;
     let influxdb_bucket = env::var("INFLUXDB_BUCKET")?;
-    let git_commit_sha = env::var("GIT_COMMIT_SHA").unwrap_or_else(|_| "unknown".to_string());
-    let git_branch = env::var("GIT_BRANCH").unwrap_or_else(|_| "unknown".to_string());
+    let _git_commit_sha = env::var("GIT_COMMIT_SHA").unwrap_or_else(|_| "unknown".to_string());
+    let _git_branch = env::var("GIT_BRANCH").unwrap_or_else(|_| "unknown".to_string());
     let timestamp = chrono::Utc::now().timestamp_nanos_opt().unwrap();
 
     let client = Client::new();
@@ -66,10 +66,16 @@ fn main() -> anyhow::Result<()> {
         let path = entry.path();
 
         // Extract benchmark name from the directory structure
-        // target/criterion/<benchmark_name>/new/estimates.json
+        // target/criterion/<benchmark_dir>/new/estimates.json
         let parent = path.parent().unwrap(); // new/
-        let benchmark_dir = parent.parent().unwrap(); // <benchmark_name>/
-        let benchmark_name = benchmark_dir.file_name().unwrap().to_string_lossy();
+        let benchmark_dir = parent.parent().unwrap(); // <benchmark_dir>/
+        let benchmark_dir_name = benchmark_dir.file_name().unwrap().to_string_lossy();
+        let benchmark_info: Vec<&str> = benchmark_dir_name.split("_with_").collect::<Vec<&str>>();
+        let benchmark_name = benchmark_info[0];
+        let mut impl_name = benchmark_name;
+        if benchmark_info.len() > 1 {
+            impl_name = benchmark_info[1];
+        }
 
         // Open and parse the estimates.json file
         let file = File::open(path)?;
@@ -79,15 +85,14 @@ fn main() -> anyhow::Result<()> {
         // Prepare the InfluxDB line protocol data
         // Include all relevant statistics
         let line = format!(
-            "benchmark,benchmark_name=\"{}\",branch=\"{}\",commit_sha=\"{}\" \
+            "benchmark,name={},impl={} \
             mean_confidence_level={},mean_lower_bound={},mean_upper_bound={},mean_point_estimate={},mean_standard_error={},\
             median_confidence_level={},median_lower_bound={},median_upper_bound={},median_point_estimate={},median_standard_error={},\
             median_abs_dev_confidence_level={},median_abs_dev_lower_bound={},median_abs_dev_upper_bound={},median_abs_dev_point_estimate={},median_abs_dev_standard_error={},\
             slope_confidence_level={},slope_lower_bound={},slope_upper_bound={},slope_point_estimate={},slope_standard_error={},\
             std_dev_confidence_level={},std_dev_lower_bound={},std_dev_upper_bound={},std_dev_point_estimate={},std_dev_standard_error={} {}",
-            benchmark_name,
-            git_branch,
-            git_commit_sha,
+            benchmark_name, // name
+            impl_name, // impl
 
             estimates.mean.confidence_interval.confidence_level,
             estimates.mean.confidence_interval.lower_bound,
@@ -136,7 +141,10 @@ fn main() -> anyhow::Result<()> {
             .send()?;
 
         if response.status().is_success() {
-            println!("Successfully wrote data for benchmark: {}", benchmark_name);
+            println!(
+                "Successfully wrote data for benchmark: {} impl: {}",
+                benchmark_name, impl_name
+            );
         } else {
             eprintln!(
                 "Failed to write data for benchmark: {}. Status: {}. Body: {}",

@@ -55,16 +55,16 @@ macro_rules! bench_lru_cache {
     };
 }
 
-bench_lru_cache!(bench_lru_cache_v1, LRUCache_v1);
-bench_lru_cache!(bench_lru_cache_v2, LRUCache_v2);
-bench_lru_cache!(bench_lru_cache_v3, LRUCache_v3);
-bench_lru_cache!(bench_lru_cache_v4, LRUCache_v4);
+bench_lru_cache!(q146_with_priority_queue, LRUCache_v1);
+bench_lru_cache!(q146_with_vec_hashmap, LRUCache_v2);
+bench_lru_cache!(q146_with_two_hashmaps, LRUCache_v3);
+bench_lru_cache!(q146_with_intrusive_two_hashmaps, LRUCache_v4);
 
 criterion_group!(
     benches,
-    bench_lru_cache_v1,
-    bench_lru_cache_v2,
-    bench_lru_cache_v3,
-    bench_lru_cache_v4,
+    q146_with_priority_queue,
+    q146_with_vec_hashmap,
+    q146_with_two_hashmaps,
+    q146_with_intrusive_two_hashmaps,
 );
 criterion_main!(benches);
