@@ -36,7 +36,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Install Dependencies
-        run: sudo apt update && sudo apt install -y gnuplot
+        run: |
+          sudo apt update && sudo apt install -y gnuplot pkg-config libssl-dev
 
       - name: Build and Run Benchmarks
         run: cargo bench # -v will be too noisy
@@ -46,7 +47,7 @@ jobs:
         with:
           tool: cargo-llvm-cov
 
-      - name: Parse and Send Benchmark Data to InfluxDB, along with collecting coverage data
+      - name: Send Benchmark Data to InfluxDB, adjust Grafana dashboard's time range, along with collecting coverage data
         run: |
           cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info
         env:
@@ -56,6 +57,9 @@ jobs:
           INFLUXDB_BUCKET: ${{ secrets.INFLUXDB_BUCKET }}
           GIT_COMMIT_SHA: ${{ github.sha }}
           GIT_BRANCH: ${{ github.ref_name }}
+          GRAFANA_URL: ${{ secrets.GRAFANA_URL }}
+          GRAFANA_SERVICE_ACCOUNT_TOKEN: ${{ secrets.GRAFANA_SERVICE_ACCOUNT_TOKEN }}
+          GRAFANA_DASHBOARD_UID: ${{ secrets.GRAFANA_DASHBOARD_UID }}
 
       - name: Upload coverage data to codecov
         uses: codecov/codecov-action@v5

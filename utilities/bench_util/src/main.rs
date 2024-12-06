@@ -1,4 +1,6 @@
 use dotenvy::dotenv;
+mod modules;
+use modules::dashboard;
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::env;
@@ -54,6 +56,7 @@ fn main() -> anyhow::Result<()> {
 
     // Build the path to the target/criterion directory
     let criterion_dir = workspace_root.join("target").join("criterion");
+    let mut db_updated = false;
 
     // Iterate over all estimates.json files
     for entry in WalkDir::new(criterion_dir)
@@ -153,6 +156,14 @@ fn main() -> anyhow::Result<()> {
                 response.text()?
             );
         }
+
+        db_updated = true;
+    }
+
+    if db_updated {
+        dashboard::update_dashboard_time_range()?;
+    } else {
+        println!("No new data to update the Grafana dashboard");
     }
 
     Ok(())
