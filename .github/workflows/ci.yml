@@ -185,13 +185,13 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - clippy
-      - fmt
+      - rustfmt
       - markdownlint
     steps:
       - run: exit 0
 
-  fmt:
-    name: fmt
+  rustfmt:
+    name: rustfmt
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -201,7 +201,7 @@ jobs:
           toolchain: ${{ env.rust_stable }}
           components: rustfmt
       - uses: Swatinem/rust-cache@v2
-      # Check fmt
+      # Check rustfmt
       - name: "rustfmt --check"
         # Workaround for rust-lang/cargo#7732
         run: |
