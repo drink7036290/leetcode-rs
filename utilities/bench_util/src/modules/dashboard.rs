@@ -20,11 +20,17 @@ fn get_time_start() -> Result<DateTime<Utc>> {
         |> range(start: -30d)
         |> filter(fn: (r) =>
           r._measurement == "benchmark" and
-          r.name == "q146" and
+          exists r.name and
           r._field == "slope_point_estimate"
         )
-        |> sort(columns: ["_time"], desc: false)
-        |> limit(n: 1) // Retrieves the earliest record
+
+        // split into smaller groups(by series) 
+        |> group()
+
+        // sort each group based on _time; collect the smallest one from each group;
+        // sort them again as group level and get the smallest one
+        |> first() 
+        
         |> map(fn: (r) => ({
             text: string(v: r._time)
         }))
