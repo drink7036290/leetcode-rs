@@ -8,25 +8,18 @@ use std::io::BufReader;
 use walkdir::WalkDir;
 
 #[derive(Debug, Deserialize)]
-struct Estimates {
-    mean: Statistic,
-    median: Statistic,
-    median_abs_dev: Statistic,
-    slope: Statistic,
-    std_dev: Statistic,
-    // Add other fields if present in the JSON
+struct PartialEstimates {
+    slope: PartialSlope,
 }
 
 #[derive(Debug, Deserialize)]
-struct Statistic {
-    confidence_interval: ConfidenceInterval,
+struct PartialSlope {
+    confidence_interval: PartialConfidenceInterval,
     point_estimate: f64,
-    standard_error: f64,
 }
 
 #[derive(Debug, Deserialize)]
-struct ConfidenceInterval {
-    confidence_level: f64,
+struct PartialConfidenceInterval {
     lower_bound: f64,
     upper_bound: f64,
 }
@@ -87,50 +80,18 @@ pub fn update_db() -> anyhow::Result<DBStatus> {
         // Open and parse the estimates.json file
         let file = File::open(path)?;
         let reader = BufReader::new(file);
-        let estimates: Estimates = serde_json::from_reader(reader)?;
+        let estimates: PartialEstimates = serde_json::from_reader(reader)?;
 
         // Prepare the InfluxDB line protocol data
         // Include all relevant statistics
         let line = format!(
             "benchmark,name={},impl={} \
-            mean_confidence_level={},mean_lower_bound={},mean_upper_bound={},mean_point_estimate={},mean_standard_error={},\
-            median_confidence_level={},median_lower_bound={},median_upper_bound={},median_point_estimate={},median_standard_error={},\
-            median_abs_dev_confidence_level={},median_abs_dev_lower_bound={},median_abs_dev_upper_bound={},median_abs_dev_point_estimate={},median_abs_dev_standard_error={},\
-            slope_confidence_level={},slope_lower_bound={},slope_upper_bound={},slope_point_estimate={},slope_standard_error={},\
-            std_dev_confidence_level={},std_dev_lower_bound={},std_dev_upper_bound={},std_dev_point_estimate={},std_dev_standard_error={} {}",
+            slope_lower_bound={},slope_upper_bound={},slope_point_estimate={} {}",
             benchmark_name, // name
-            impl_name, // impl
-
-            estimates.mean.confidence_interval.confidence_level,
-            estimates.mean.confidence_interval.lower_bound,
-            estimates.mean.confidence_interval.upper_bound,
-            estimates.mean.point_estimate,
-            estimates.mean.standard_error,
-
-            estimates.median.confidence_interval.confidence_level,
-            estimates.median.confidence_interval.lower_bound,
-            estimates.median.confidence_interval.upper_bound,
-            estimates.median.point_estimate,
-            estimates.median.standard_error,
-
-            estimates.median_abs_dev.confidence_interval.confidence_level,
-            estimates.median_abs_dev.confidence_interval.lower_bound,
-            estimates.median_abs_dev.confidence_interval.upper_bound,
-            estimates.median_abs_dev.point_estimate,
-            estimates.median_abs_dev.standard_error,
-
-            estimates.slope.confidence_interval.confidence_level,
+            impl_name,      // impl
             estimates.slope.confidence_interval.lower_bound,
             estimates.slope.confidence_interval.upper_bound,
             estimates.slope.point_estimate,
-            estimates.slope.standard_error,
-
-            estimates.std_dev.confidence_interval.confidence_level,
-            estimates.std_dev.confidence_interval.lower_bound,
-            estimates.std_dev.confidence_interval.upper_bound,
-            estimates.std_dev.point_estimate,
-            estimates.std_dev.standard_error,
-
             timestamp,
         );
 
