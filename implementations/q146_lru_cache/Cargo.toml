@@ -22,5 +22,17 @@ bench = false
 # https://bheisler.github.io/criterion.rs/book/faq.html#cargo-bench-gives-unrecognized-option-errors-for-valid-command-line-options
 
 [[bench]]
-name = "bench_all_impl"
+name = "bench_priority_queue"
+harness = false # Disables the default Rust benchmarking harness so that Criterion can use its own.
+
+[[bench]]
+name = "bench_vec_hashmap"
+harness = false # Disables the default Rust benchmarking harness so that Criterion can use its own.
+
+[[bench]]
+name = "bench_two_hashmaps"
+harness = false # Disables the default Rust benchmarking harness so that Criterion can use its own.
+
+[[bench]]
+name = "bench_intrusive_two_hashmaps"
 harness = false # Disables the default Rust benchmarking harness so that Criterion can use its own.
