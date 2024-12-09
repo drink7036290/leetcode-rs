@@ -1,9 +1,9 @@
 use rstest::rstest;
 
-use q146_lru_cache::impl_v1::LRUCache as LRUCache_v1;
-use q146_lru_cache::impl_v2::LRUCache as LRUCache_v2;
-use q146_lru_cache::impl_v3::LRUCache as LRUCache_v3;
-use q146_lru_cache::impl_v4::LRUCache as LRUCache_v4;
+use q146_lru_cache::impl_intrusive_two_hashmaps::LRUCache as LRUCache_intrusive_two_hashmaps;
+use q146_lru_cache::impl_priority_queue::LRUCache as LRUCache_priority_queue;
+use q146_lru_cache::impl_two_hashmaps::LRUCache as LRUCache_two_hashmaps;
+use q146_lru_cache::impl_vec_hashmap::LRUCache as LRUCache_vec_hashmap;
 
 #[rstest]
 #[case(vec!["LRUCache", "put", "put", "get", "put", "get", "put", "get", "get", "get"], 
@@ -22,10 +22,10 @@ fn test_all_impl(
     assert_eq!(cmds[0], "LRUCache");
     assert_eq!(expected_list[0], None);
 
-    let mut cache_v1 = LRUCache_v1::new(args_list[0][0]);
-    let mut cache_v2 = LRUCache_v2::new(args_list[0][0]);
-    let mut cache_v3 = LRUCache_v3::new(args_list[0][0]);
-    let mut cache_v4 = LRUCache_v4::new(args_list[0][0]);
+    let mut cache_priority_queue = LRUCache_priority_queue::new(args_list[0][0]);
+    let mut cache_vec_hashmap = LRUCache_vec_hashmap::new(args_list[0][0]);
+    let mut cache_two_hashmaps = LRUCache_two_hashmaps::new(args_list[0][0]);
+    let mut cache_intrusive_two_hashmaps = LRUCache_intrusive_two_hashmaps::new(args_list[0][0]);
 
     for (i, cmd) in cmds.iter().enumerate().skip(1) {
         let args = &args_list[i];
@@ -37,10 +37,10 @@ fn test_all_impl(
                     assert_eq!(args.len(), 1);
                     let key = args[0];
 
-                    assert_eq!(cache_v1.get(key), v);
-                    assert_eq!(cache_v2.get(key), v);
-                    assert_eq!(cache_v3.get(key), v);
-                    assert_eq!(cache_v4.get(key), v);
+                    assert_eq!(cache_priority_queue.get(key), v);
+                    assert_eq!(cache_vec_hashmap.get(key), v);
+                    assert_eq!(cache_two_hashmaps.get(key), v);
+                    assert_eq!(cache_intrusive_two_hashmaps.get(key), v);
                 }
                 None => {
                     panic!("expected value should not be None for cmd \"get\"");
@@ -55,10 +55,10 @@ fn test_all_impl(
                     let key = args[0];
                     let value = args[1];
 
-                    cache_v1.put(key, value);
-                    cache_v2.put(key, value);
-                    cache_v3.put(key, value);
-                    cache_v4.put(key, value);
+                    cache_priority_queue.put(key, value);
+                    cache_vec_hashmap.put(key, value);
+                    cache_two_hashmaps.put(key, value);
+                    cache_intrusive_two_hashmaps.put(key, value);
                 }
             },
             _ => {
