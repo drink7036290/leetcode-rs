@@ -23,12 +23,13 @@ pub fn capacity_range() -> RangeInclusive<usize> {
 
 // Number of Operations: At most 2 * 10^5 calls to get and put
 // reduce this number to make the tests faster
+#[cfg(any(test, miri))]
 pub fn operations_range() -> RangeInclusive<usize> {
-    if cfg!(miri) {
-        1..=200
-    } else {
-        1..=10_000
-    }
+    1..=200
+}
+#[cfg(not(any(test, miri)))]
+pub fn operations_range() -> RangeInclusive<usize> {
+    1..=10_000
 }
 
 // Define an enum to represent cache operations
