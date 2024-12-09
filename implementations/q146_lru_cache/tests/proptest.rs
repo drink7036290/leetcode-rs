@@ -1,43 +1,21 @@
 use proptest::prelude::*;
 
-// Define an enum to represent cache operations
-#[derive(Debug, Clone)]
-enum CacheOperation {
-    Put { key: i32, value: i32 },
-    Get { key: i32 },
-}
+use q146_lru_cache::test_common::*;
 
-// Capacity: 1 <= capacity <= 10^4
-// Key: 0 <= key <= 10^5
-// Value: 0 <= value <= 10^9
-// Number of Operations: At most 2 * 10^5 calls to get and put
-
-// Generator for cache operations within specified constraints
-fn cache_operation_strategy() -> impl Strategy<Value = CacheOperation> {
-    prop_oneof![
-        // Generate a 'put' operation with key in [0, 1e5] and value in [0, 1e9]
-        (0..=100_000i32, 0..=1_000_000_000i32)
-            .prop_map(|(key, value)| CacheOperation::Put { key, value }),
-        // Generate a 'get' operation with key in [0, 1e5]
-        (0..=100_000i32).prop_map(|key| CacheOperation::Get { key }),
-    ]
-}
-
-// Generator for operation sequences with length up to 2e5
 fn operation_sequence_strategy() -> impl Strategy<Value = Vec<CacheOperation>> {
-    prop::collection::vec(cache_operation_strategy(), 1..=200)
+    prop::collection::vec(any::<CacheOperation>(), operations_range())
 }
 
-fn test_lru_cache_with_operations(capacity: i32, operations: Vec<CacheOperation>) {
+fn test_lru_cache_with_operations(capacity: usize, operations: Vec<CacheOperation>) {
     use q146_lru_cache::impl_intrusive_two_hashmaps::LRUCache as LRUCache_intrusive_two_hashmaps;
     use q146_lru_cache::impl_priority_queue::LRUCache as LRUCache_priority_queue;
     use q146_lru_cache::impl_two_hashmaps::LRUCache as LRUCache_two_hashmaps;
     use q146_lru_cache::impl_vec_hashmap::LRUCache as LRUCache_vec_hashmap;
 
-    let mut cache_priority_queue = LRUCache_priority_queue::new(capacity);
-    let mut cache_vec_hashmap = LRUCache_vec_hashmap::new(capacity);
-    let mut cache_two_hashmaps = LRUCache_two_hashmaps::new(capacity);
-    let mut cache_intrusive_two_hashmaps = LRUCache_intrusive_two_hashmaps::new(capacity);
+    let mut cache_priority_queue = LRUCache_priority_queue::new(capacity as i32);
+    let mut cache_vec_hashmap = LRUCache_vec_hashmap::new(capacity as i32);
+    let mut cache_two_hashmaps = LRUCache_two_hashmaps::new(capacity as i32);
+    let mut cache_intrusive_two_hashmaps = LRUCache_intrusive_two_hashmaps::new(capacity as i32);
 
     for operation in operations {
         match operation {
@@ -56,17 +34,17 @@ fn test_lru_cache_with_operations(capacity: i32, operations: Vec<CacheOperation>
                 // Compare results
                 assert_eq!(
                     result_priority_queue, result_vec_hashmap,
-                    "v1 and v2 differ on get({})",
+                    "priority_queue and vec_hashmap differ on get({})",
                     key
                 );
                 assert_eq!(
                     result_priority_queue, result_two_hashmaps,
-                    "v1 and v3 differ on get({})",
+                    "priority_queue and two_hashmaps differ on get({})",
                     key
                 );
                 assert_eq!(
                     result_priority_queue, result_intrusive_two_hashmaps,
-                    "v1 and v4 differ on get({})",
+                    "priority_queue and intrusive_two_hashmaps differ on get({})",
                     key
                 );
             }
@@ -76,8 +54,8 @@ fn test_lru_cache_with_operations(capacity: i32, operations: Vec<CacheOperation>
 
 #[test]
 fn test_lru_cache_implementations() {
-    let config = ProptestConfig::with_cases(10); // Number of test cases to generate
-    proptest!(config, |(capacity in 1..=3_000i32, operations in operation_sequence_strategy())| {
+    let config = ProptestConfig::with_cases(NUM_PROPTEST_CASES); // Number of test cases to generate
+    proptest!(config, |(capacity in capacity_range(), operations in operation_sequence_strategy())| {
         test_lru_cache_with_operations(capacity, operations);
     });
 }
