@@ -1,10 +1,3 @@
 mod modules;
 
-use criterion::{criterion_group, criterion_main};
-
-use q146_lru_cache::impl_vec_hashmap::LRUCache;
-
-bench_lru_cache!(q146_with_vec_hashmap, LRUCache);
-
-criterion_group!(benches, q146_with_vec_hashmap);
-criterion_main!(benches);
+define_benchmark!(vec_hashmap);
