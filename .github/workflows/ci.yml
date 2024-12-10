@@ -20,10 +20,53 @@ env:
 
 jobs:
 
-  bench:
-    name: benchmarks
+  define-matrix:
     needs: tests-pass
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Discover benches
+        id: benches
+        run: |
+          # We'll find all sub-crates, then find *.rs files under each sub-crate's benches directory.
+          # We assume structure like: implementations/SUBCRATE/benches/BENCH.rs
+          # Adjust globbing if needed.
+          
+          # Find all sub crates under implementations
+          SUBCRATES=$(find implementations -maxdepth 1 -type d -printf '%f\n' || true)
+          
+          # Build a JSON array of objects
+          # Each object: { "subcrate": "xxx", "bench": "yyy" }
+          # For each subcrate, we look under benches for *.rs files
+          JSON='['
+          first=true
+          for crate in $SUBCRATES; do
+            BENCH_FILES=$(find "implementations/$crate/benches" -name '*.rs' -printf '%f\n' 2>/dev/null || true)
+            for bf in $BENCH_FILES; do
+              bench_name="${bf%.rs}" # remove .rs extension
+              if [ "$first" = true ]; then
+                first=false
+              else
+                JSON="$JSON,"
+              fi
+              JSON="$JSON{\"subcrate\":\"$crate\",\"bench\":\"$bench_name\"}"
+            done
+          done
+          JSON="$JSON]"
+          
+          echo "benches=$JSON" >> "$GITHUB_OUTPUT"
+
+    outputs:
+      benches: ${{ steps.benches.outputs.benches }}
+
+  bench:
+    needs: define-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      # Parse the JSON output from define-matrix job
+      matrix:
+        combo: ${{ fromJSON(needs.define-matrix.outputs.benches) }}
     steps:
       - uses: actions/checkout@v4
         # Nightly Rust is used for cargo llvm-cov --doc below.
@@ -40,8 +83,17 @@ jobs:
           sudo apt update && sudo apt install -y gnuplot pkg-config libssl-dev
 
       - name: Build and Run Benchmarks
+        # Run the benchmark for the specified subcrate and bench target
         # each sub crate adjust its settings by Cargo.toml
-        run: cargo bench # -v will be too noisy
+        run: |
+          BENCH_METRICS_DIR=/tmp/${{ matrix.combo.subcrate }}/${{ matrix.combo.bench }}
+          mkdir -p $BENCH_METRICS_DIR
+        
+          MAX_RSS_PATH=$BENCH_METRICS_DIR/max_rss
+          CPU_USAGE_PATH=$BENCH_METRICS_DIR/cpu_usage
+
+          # Use GNU time on Ubuntu, max_rss in KB, cpu_usage in percent
+          /usr/bin/time -f "%M" -o $MAX_RSS_PATH -f "%P" -o $CPU_USAGE_PATH cargo bench -p ${{ matrix.combo.subcrate }} --bench ${{ matrix.combo.bench }}
       
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@v2
@@ -50,7 +102,7 @@ jobs:
 
       - name: Send Benchmark Data to InfluxDB, adjust Grafana dashboard's time range, along with collecting coverage data
         run: |
-          cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info
+          cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info -- --bench-metrics-dir=$BENCH_METRICS_DIR --sub-crate-name=${{ matrix.combo.subcrate }} --bench-name=${{ matrix.combo.bench }}
         env:
           INFLUXDB_URL: ${{ secrets.INFLUXDB_URL }}
           INFLUXDB_TOKEN: ${{ secrets.INFLUXDB_TOKEN }}
