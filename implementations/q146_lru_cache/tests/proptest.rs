@@ -1,9 +1,11 @@
 use proptest::prelude::*;
 
-use q146_lru_cache::test_common::*;
+use q146_lru_cache::utils::test_common::*;
 
 fn operation_sequence_strategy() -> impl Strategy<Value = Vec<CacheOperation>> {
-    prop::collection::vec(any::<CacheOperation>(), operations_range())
+    let provider = mock_operations_range_provider_default();
+
+    prop::collection::vec(any::<CacheOperation>(), provider.operations_range())
 }
 
 fn test_lru_cache_with_operations(capacity: usize, operations: Vec<CacheOperation>) {

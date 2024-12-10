@@ -1,3 +1,4 @@
+use mockall::automock;
 use proptest::prelude::*;
 use rand::distributions::{Distribution, Standard};
 use rand::Rng;
@@ -23,13 +24,25 @@ pub fn capacity_range() -> RangeInclusive<usize> {
 
 // Number of Operations: At most 2 * 10^5 calls to get and put
 // reduce this number to make the tests faster
-#[cfg(any(test, miri))]
-pub fn operations_range() -> RangeInclusive<usize> {
-    1..=200
+#[automock]
+pub trait OperationsRangeProvider {
+    fn operations_range(&self) -> RangeInclusive<usize>;
 }
-#[cfg(not(any(test, miri)))]
-pub fn operations_range() -> RangeInclusive<usize> {
-    1..=10_000
+
+pub struct DefaultOperationsRangeProvider;
+
+impl OperationsRangeProvider for DefaultOperationsRangeProvider {
+    fn operations_range(&self) -> RangeInclusive<usize> {
+        1..=10_000
+    }
+}
+
+// A helper function that returns a MockOperationsRangeProvider with a default range pre-configured.
+pub fn mock_operations_range_provider_default() -> MockOperationsRangeProvider {
+    let mut mock = MockOperationsRangeProvider::new();
+    // Set the default return value here, so users of this function don't have to:
+    mock.expect_operations_range().return_const(1..=200);
+    mock
 }
 
 // Define an enum to represent cache operations

@@ -1,4 +1,4 @@
-use crate::heap_node::HeapNode;
+use crate::utils::heap_node::HeapNode;
 use std::collections::HashMap;
 
 use std::cmp::Ordering;

@@ -2,7 +2,7 @@ use priority_queue::PriorityQueue;
 use std::cmp::Reverse;
 use std::time::SystemTime;
 
-use crate::heap_node::HeapNode;
+use crate::utils::heap_node::HeapNode;
 
 pub struct LRUCache {
     pq: PriorityQueue<i32, Reverse<HeapNode>>,

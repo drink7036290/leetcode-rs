@@ -2,12 +2,13 @@ use once_cell::sync::Lazy;
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 
-use q146_lru_cache::test_common::*;
+use q146_lru_cache::utils::test_common::*;
 
 pub static OPERATIONS: Lazy<Vec<CacheOperation>> = Lazy::new(|| {
     let mut rng = StdRng::seed_from_u64(SEED);
 
-    operations_range()
+    DefaultOperationsRangeProvider
+        .operations_range()
         .map(|_| rng.gen())
         .collect::<Vec<CacheOperation>>()
 });
@@ -26,13 +27,16 @@ macro_rules! bench_lru_cache {
                         <$cache_type>::new(::criterion::black_box(capacity as i32));
                     for op in $crate::modules::bench_common::OPERATIONS.iter() {
                         match op {
-                            q146_lru_cache::test_common::CacheOperation::Put { key, value } => {
+                            q146_lru_cache::utils::test_common::CacheOperation::Put {
+                                key,
+                                value,
+                            } => {
                                 cache.put(
                                     ::criterion::black_box(*key),
                                     ::criterion::black_box(*value),
                                 );
                             }
-                            q146_lru_cache::test_common::CacheOperation::Get { key } => {
+                            q146_lru_cache::utils::test_common::CacheOperation::Get { key } => {
                                 ::criterion::black_box(cache.get(::criterion::black_box(*key)));
                             }
                         }
