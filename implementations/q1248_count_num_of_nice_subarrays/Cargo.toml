@@ -2,6 +2,7 @@
 name = "q1248_count_num_of_nice_subarrays"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 
 [dependencies]
 

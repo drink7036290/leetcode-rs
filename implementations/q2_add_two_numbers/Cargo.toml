@@ -2,6 +2,7 @@
 name = "q2_add_two_numbers"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 
 [dependencies]
 leetcode_prelude = "0.2.3"

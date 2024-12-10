@@ -2,6 +2,7 @@
 name = "q460_lfu_cache"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 
 [dependencies]
 priority-queue = "2.1.1"
@@ -16,4 +17,4 @@ criterion = "0.5.1"
 
 [[bench]]
 name = "bench_all_impl"
-harness = false # Disables the default Rust benchmarking harness so that Criterion can use its own.
+harness = false         # Disables the default Rust benchmarking harness so that Criterion can use its own.
