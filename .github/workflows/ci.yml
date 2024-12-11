@@ -80,14 +80,14 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          sudo apt update && sudo apt install -y gnuplot pkg-config libssl-dev
+          sudo apt update && sudo apt install -y gnuplot jq
 
       - name: Build and Run Benchmarks
         # Run the benchmark for the specified subcrate and bench target
         # each sub crate adjust its settings by Cargo.toml
         run: |
           BENCH_METRICS_PATH=/tmp/${{ matrix.combo.subcrate }}/${{ matrix.combo.bench }}.json
-          mkdir -p "dirname $BENCH_METRICS_PATH"
+          mkdir -p "$(dirname "$BENCH_METRICS_PATH")"
           echo "BENCH_METRICS_PATH=$BENCH_METRICS_PATH" >> $GITHUB_ENV
 
           # Use GNU time on Ubuntu, max_rss in KB, cpu_usage in percent
