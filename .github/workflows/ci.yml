@@ -29,7 +29,7 @@ jobs:
       - name: Discover benches
         id: benches
         run: |
-          # We'll find all sub-crates, then find *.rs files under each sub-crate's benches directory.
+          # We'll find all sub-crates, then find *.rs files under each sub-crate's benches/ directory.
           # We assume structure like: implementations/SUBCRATE/benches/BENCH.rs
           # Adjust globbing if needed.
           
@@ -38,11 +38,11 @@ jobs:
           
           # Build a JSON array of objects
           # Each object: { "subcrate": "xxx", "bench": "yyy" }
-          # For each subcrate, we look under benches for *.rs files
+          # For each subcrate, we look under benches/ for *.rs files
           JSON='['
           first=true
           for crate in $SUBCRATES; do
-            BENCH_FILES=$(find "implementations/$crate/benches" -name '*.rs' -printf '%f\n' 2>/dev/null || true)
+            BENCH_FILES=$(find "implementations/$crate/benches" -maxdepth 1 -name '*.rs' -printf '%f\n' 2>/dev/null || true)
             for bf in $BENCH_FILES; do
               bench_name="${bf%.rs}" # remove .rs extension
               if [ "$first" = true ]; then
