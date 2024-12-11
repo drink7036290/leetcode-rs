@@ -3,7 +3,6 @@ use clap::Parser;
 use dotenvy::dotenv;
 use reqwest::blocking::Client;
 use serde::Deserialize;
-use std::fs;
 use std::fs::File;
 use std::io::BufReader;
 use std::{env, path::PathBuf};
@@ -26,6 +25,13 @@ struct PartialConfidenceInterval {
     upper_bound: f64,
 }
 
+#[derive(Debug, Deserialize)]
+struct BenchmarkMetric {
+    max_rss_in_kb: Option<u64>,         // e.g., "204800"
+    cpu_percentage: Option<String>,     // e.g., "207%"
+    wall_clock_in_seconds: Option<f64>, // e.g., "0.00"
+}
+
 pub enum DBStatus {
     Updated,
     NoUpdate,
@@ -33,25 +39,24 @@ pub enum DBStatus {
 
 #[derive(Parser, Debug)]
 struct Args {
-    /// Directory path for benchmark metrics like maximum RSS and CPU usage
-    #[arg(long, value_name = "DIR", requires_all = &["sub_crate_name", "bench_name"])]
-    bench_metrics_dir: Option<String>,
+    /// e.g., "/tmp/sub_crate_name/bench_name.json"
+    #[arg(long, value_name = "BENCH_METRICS_PATH", requires_all = &["sub_crate_name", "bench_name"])]
+    bench_metrics_path: Option<String>,
 
-    /// Sub-crate name, e.g., "qxxx"
-    #[arg(long, value_name = "SUB_CRATE", requires_all = &["bench_metrics_dir", "bench_name"])]
+    /// e.g., "qxxx_with_blabla"
+    #[arg(long, value_name = "SUB_CRATE_NAME", requires_all = &["bench_metrics_path", "bench_name"])]
     sub_crate_name: Option<String>,
 
-    /// Benchmark name, e.g., "bench_IMPL"
-    #[arg(long, value_name = "BENCH_NAME", requires_all = &["bench_metrics_dir", "sub_crate_name"])]
+    /// e.g., "bench_IMPL"
+    #[arg(long, value_name = "BENCH_NAME", requires_all = &["bench_metrics_path", "sub_crate_name"])]
     bench_name: Option<String>,
 }
 
-fn move_criterion_dir(
+fn criterion_chdir(
     criterion_dir: &mut PathBuf,
     sub_crate_name: &str,
     bench_name: &str,
 ) -> anyhow::Result<()> {
-    // e.g., qxxx_with_blabla
     let sub_crate_prefix = sub_crate_name.split('_').next().ok_or_else(|| {
         anyhow!(
             "Sub-crate name \"{}\" must be in the format of \"qxxx_with_blabla\"",
@@ -84,40 +89,36 @@ fn retrieve_metrics_info(criterion_dir: &mut PathBuf) -> anyhow::Result<String> 
     let args = Args::parse();
 
     // e.g.,
-    // bench_metrics_dir = /tmp/
+    // bench_metrics_path = /tmp/sub_crate_name/bench_name.json
     // sub_crate_name = qxxx_with_blabla
     // bench_name = bench_IMPL
-    if let (Some(bench_metrics_dir), Some(sub_crate_name), Some(bench_name)) =
-        (args.bench_metrics_dir, args.sub_crate_name, args.bench_name)
-    {
-        println!("bench_metrics_dir: {}", bench_metrics_dir);
+    if let (Some(bench_metrics_path), Some(sub_crate_name), Some(bench_name)) = (
+        args.bench_metrics_path,
+        args.sub_crate_name,
+        args.bench_name,
+    ) {
+        println!("bench_metrics_path: {}", bench_metrics_path);
         println!("sub_crate_name: {}", sub_crate_name);
         println!("bench_name: {}", bench_name);
 
-        move_criterion_dir(criterion_dir, &sub_crate_name, &bench_name)?;
+        criterion_chdir(criterion_dir, &sub_crate_name, &bench_name)?;
 
-        let bench_metrics_dir = PathBuf::from(bench_metrics_dir);
-        if bench_metrics_dir.try_exists().is_err() {
-            return Err(anyhow!(
-                "Benchmark metrics directory \"{}\" does not exist",
-                bench_metrics_dir.display()
+        let file = File::open(bench_metrics_path)?;
+        let reader = BufReader::new(file);
+        let metrics: BenchmarkMetric = serde_json::from_reader(reader)?;
+
+        // append each metric to metrics_info
+        if let Some(max_rss_in_kb) = metrics.max_rss_in_kb {
+            metrics_info.push_str(&format!(",max_rss_in_kb={}", max_rss_in_kb));
+        }
+        if let Some(cpu_percentage) = metrics.cpu_percentage {
+            metrics_info.push_str(&format!(
+                ",cpu_percentage={}",
+                cpu_percentage.trim_matches('%')
             ));
         }
-
-        // for each bench_metrics_dir/FILE, append ",FILE_NAME=FILE_CONTENT" to metrics_info
-        for entry in WalkDir::new(bench_metrics_dir)
-            .into_iter()
-            .filter_map(|e| e.ok())
-            .filter(|e| e.file_type().is_file())
-        {
-            let path = entry.path();
-            let file_name = path.file_name().unwrap().to_string_lossy();
-            let file_content = fs::read_to_string(path)?;
-            metrics_info.push_str(&format!(
-                ",{}={}",
-                file_name,
-                file_content.trim().trim_matches('%')
-            ));
+        if let Some(wall_clock_in_seconds) = metrics.wall_clock_in_seconds {
+            metrics_info.push_str(&format!(",wall_clock_in_seconds={}", wall_clock_in_seconds));
         }
     } else {
         println!("Running without benchmark metrics.");

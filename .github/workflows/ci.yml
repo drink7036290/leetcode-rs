@@ -86,16 +86,20 @@ jobs:
         # Run the benchmark for the specified subcrate and bench target
         # each sub crate adjust its settings by Cargo.toml
         run: |
-          BENCH_METRICS_DIR=/tmp/${{ matrix.combo.subcrate }}/${{ matrix.combo.bench }}
-          mkdir -p $BENCH_METRICS_DIR
-          echo "BENCH_METRICS_DIR=$BENCH_METRICS_DIR" >> $GITHUB_ENV
-        
-          MAX_RSS_PATH=$BENCH_METRICS_DIR/max_rss
-          CPU_USAGE_PATH=$BENCH_METRICS_DIR/cpu_usage
+          BENCH_METRICS_PATH=/tmp/${{ matrix.combo.subcrate }}/${{ matrix.combo.bench }}.json
+          mkdir -p "dirname $BENCH_METRICS_PATH"
+          echo "BENCH_METRICS_PATH=$BENCH_METRICS_PATH" >> $GITHUB_ENV
 
           # Use GNU time on Ubuntu, max_rss in KB, cpu_usage in percent
-          /usr/bin/time -f "%M" -o $MAX_RSS_PATH -f "%P" -o $CPU_USAGE_PATH cargo bench -p ${{ matrix.combo.subcrate }} --bench ${{ matrix.combo.bench }}
+          /usr/bin/time -f '{"max_rss_in_kb": %M, "cpu_percentage": "%P", "wall_clock_in_seconds": %e}' -o $BENCH_METRICS_PATH cargo bench -p ${{ matrix.combo.subcrate }} --bench ${{ matrix.combo.bench }}
       
+          # Validate JSON using jq
+          jq empty $BENCH_METRICS_PATH
+          if [ $? -ne 0 ]; then
+              echo "Invalid JSON format in $BENCH_METRICS_PATH"
+              exit 1
+          fi
+
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@v2
         with:
@@ -103,8 +107,8 @@ jobs:
 
       - name: Send Benchmark Data to InfluxDB, adjust Grafana dashboard's time range, along with collecting coverage data
         run: |
-          echo "Using BENCH_METRICS_DIR: $BENCH_METRICS_DIR"
-          cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info -- --bench-metrics-dir="$BENCH_METRICS_DIR" --sub-crate-name=${{ matrix.combo.subcrate }} --bench-name=${{ matrix.combo.bench }}
+          echo "Using BENCH_METRICS_PATH: $BENCH_METRICS_PATH"
+          cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info -- --bench-metrics-path="$BENCH_METRICS_PATH" --sub-crate-name=${{ matrix.combo.subcrate }} --bench-name=${{ matrix.combo.bench }}
         env:
           INFLUXDB_URL: ${{ secrets.INFLUXDB_URL }}
           INFLUXDB_TOKEN: ${{ secrets.INFLUXDB_TOKEN }}
