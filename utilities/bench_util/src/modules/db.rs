@@ -59,8 +59,6 @@ fn move_criterion_dir(
         )
     })?;
 
-    println!("before criterion_dir: {}", criterion_dir.display());
-
     // Extend criterion_dir to this specific benchmark
     criterion_dir.push(format!(
         "{}_with_{}", // e.g., "qxxx_IMPL"
