@@ -112,7 +112,7 @@ jobs:
 
       - name: Send Benchmark Data to InfluxDB, adjust Grafana dashboard's time range, along with collecting coverage data
         run: |
-          cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info -- --metrics-config="metrics.json" --sub-crate-name=${{ matrix.combo.subcrate }} --bench-name=${{ matrix.combo.bench }}
+          cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info -- --metrics-config="metrics.json" --sub-crate=${{ matrix.combo.subcrate }} --bench=${{ matrix.combo.bench }}
         env:
           INFLUXDB_URL: ${{ secrets.INFLUXDB_URL }}
           INFLUXDB_TOKEN: ${{ secrets.INFLUXDB_TOKEN }}
