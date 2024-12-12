@@ -55,16 +55,16 @@ macro_rules! bench_lfu_cache {
     };
 }
 
-bench_lfu_cache!(bench_lfu_cache_v1, LFUCache_v1);
-bench_lfu_cache!(bench_lfu_cache_v2, LFUCache_v2);
-bench_lfu_cache!(bench_lfu_cache_v3, LFUCache_v3);
-bench_lfu_cache!(bench_lfu_cache_v4, LFUCache_v4);
+bench_lfu_cache!(q460_lfu_cache_bench_lfu_cache_v1, LFUCache_v1);
+bench_lfu_cache!(q460_lfu_cache_bench_lfu_cache_v2, LFUCache_v2);
+bench_lfu_cache!(q460_lfu_cache_bench_lfu_cache_v3, LFUCache_v3);
+bench_lfu_cache!(q460_lfu_cache_bench_lfu_cache_v4, LFUCache_v4);
 
 criterion_group!(
     benches,
-    bench_lfu_cache_v1,
-    bench_lfu_cache_v2,
-    bench_lfu_cache_v3,
-    bench_lfu_cache_v4,
+    q460_lfu_cache_bench_lfu_cache_v1,
+    q460_lfu_cache_bench_lfu_cache_v2,
+    q460_lfu_cache_bench_lfu_cache_v3,
+    q460_lfu_cache_bench_lfu_cache_v4,
 );
 criterion_main!(benches);

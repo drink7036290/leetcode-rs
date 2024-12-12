@@ -12,3 +12,4 @@ lcov**.info
 
 # bench
 **/.env
+metrics.json

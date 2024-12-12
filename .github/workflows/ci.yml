@@ -94,21 +94,25 @@ jobs:
           /usr/bin/time -f '{"max_rss_in_kb": %M, "cpu_percentage": "%P", "wall_clock_in_seconds": %e}' -o $BENCH_METRICS_PATH cargo bench -p ${{ matrix.combo.subcrate }} --bench ${{ matrix.combo.bench }}
       
           # Validate JSON using jq
-          jq empty $BENCH_METRICS_PATH
-          if [ $? -ne 0 ]; then
-              echo "Invalid JSON format in $BENCH_METRICS_PATH"
-              exit 1
-          fi
+          jq empty $BENCH_METRICS_PATH || (echo "Invalid JSON format in $BENCH_METRICS_PATH"; exit 1)
 
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-llvm-cov
 
+      - name: Generate metrics.json
+        run: |
+          envsubst < .github/templates/metrics_template.json > metrics.json
+          jq empty metrics.json || (echo "Invalid JSON format in metrics.json"; exit 1)
+        env:
+          SUB_CRATE: ${{ matrix.combo.subcrate }}
+          BENCH: ${{ matrix.combo.bench }}
+          BENCH_METRICS_PATH: $BENCH_METRICS_PATH
+
       - name: Send Benchmark Data to InfluxDB, adjust Grafana dashboard's time range, along with collecting coverage data
         run: |
-          echo "Using BENCH_METRICS_PATH: $BENCH_METRICS_PATH"
-          cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info -- --bench-metrics-path="$BENCH_METRICS_PATH" --sub-crate-name=${{ matrix.combo.subcrate }} --bench-name=${{ matrix.combo.bench }}
+          cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info -- --metrics-config="metrics.json" --sub-crate-name=${{ matrix.combo.subcrate }} --bench-name=${{ matrix.combo.bench }}
         env:
           INFLUXDB_URL: ${{ secrets.INFLUXDB_URL }}
           INFLUXDB_TOKEN: ${{ secrets.INFLUXDB_TOKEN }}

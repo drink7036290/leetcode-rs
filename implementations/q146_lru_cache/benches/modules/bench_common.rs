@@ -58,10 +58,10 @@ macro_rules! define_benchmark {
             use q146_lru_cache::[<impl_ $postfix>]::LRUCache;
 
             // Generate a unique benchmark function name
-            bench_lru_cache!([<q146_with_ $postfix>], LRUCache);
+            bench_lru_cache!([<q146_lru_cache _ bench_ $postfix>], LRUCache);
 
             // Collect the benchmark function into the group
-            criterion_group!(benches, [<q146_with_ $postfix>]);
+            criterion_group!(benches, [<q146_lru_cache _ bench_ $postfix>]);
             criterion_main!(benches);
         }
     };

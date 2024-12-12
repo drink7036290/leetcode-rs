@@ -1,0 +1,18 @@
+[
+  {
+    "path": "target/criterion/${SUB_CRATE}_${BENCH}/new/estimates.json",
+    "filters": {
+      "slope.confidence_interval.lower_bound": "optional",
+      "slope.confidence_interval.upper_bound": "optional",
+      "slope.point_estimate": "needed"
+    }
+  },
+  {
+    "path": "$BENCH_METRICS_PATH",
+    "filters": {
+      "max_rss_in_kb": "needed",
+      "cpu_percentage": "optional",
+      "wall_clock_in_seconds": "optional"
+    }
+  }
+]
