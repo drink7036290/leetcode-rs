@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Ok};
+use anyhow::{anyhow, Context, Ok};
 use clap::Parser;
 use dotenvy::dotenv;
 use reqwest::blocking::Client;
@@ -62,9 +62,11 @@ fn collect_metrics_from_single_json(
     filters: &Map<String, Value>,
 ) -> anyhow::Result<String> {
     // Open the specified JSON file and parse
-    let file = File::open(metrics_path)?;
+    let file = File::open(metrics_path)
+        .with_context(|| format!("Failed to open metrics file '{}'", metrics_path))?;
     let reader = BufReader::new(file);
-    let data: Value = serde_json::from_reader(reader)?;
+    let data: Value = serde_json::from_reader(reader)
+        .with_context(|| format!("Failed to parse metrics file '{}' as JSON", metrics_path))?;
 
     let mut metrics = String::with_capacity(128); // Adjust based on expected size
 
@@ -91,14 +93,33 @@ fn collect_metrics_from_single_json(
                 Value::Bool(b) => b.to_string(),
                 _ => {
                     // For complex structures, we can serialize the entire value
-                    serde_json::to_string(val)?
+                    serde_json::to_string(val).with_context(|| {
+                        format!(
+                            "Failed to serialize field '{}' in JSON '{}'",
+                            field_path, metrics_path
+                        )
+                    })?
                 }
             };
 
             if !metrics.is_empty() {
-                write!(&mut metrics, ",")?;
+                write!(&mut metrics, ",").with_context(|| {
+                    format!(
+                        "Failed to append ',' to metrics string for field '{}' in JSON '{}'",
+                        field_path, metrics_path
+                    )
+                })?;
             }
-            write!(&mut metrics, "{}={}", field_path, val_str.trim_matches('%'))?;
+            write!(&mut metrics, "{}={}", field_path, val_str.trim_matches('%')).with_context(
+                || {
+                    format!(
+                        "Failed to append '{}={}' to metrics string for JSON '{}'",
+                        field_path,
+                        val_str.trim_matches('%'),
+                        metrics_path
+                    )
+                },
+            )?;
         }
     }
 
@@ -107,10 +128,16 @@ fn collect_metrics_from_single_json(
     Ok(metrics)
 }
 
-fn collect_metrics(metrics_config: String) -> anyhow::Result<String> {
-    let file = File::open(metrics_config)?;
+fn collect_metrics(metrics_config: &str) -> anyhow::Result<String> {
+    let file = File::open(metrics_config)
+        .with_context(|| format!("Failed to open metrics config file '{}'", metrics_config))?;
     let reader = BufReader::new(file);
-    let configs: Value = serde_json::from_reader(reader)?;
+    let configs: Value = serde_json::from_reader(reader).with_context(|| {
+        format!(
+            "Failed to parse metrics config file '{}' as JSON",
+            metrics_config
+        )
+    })?;
 
     let pairs = configs
         .as_array()
@@ -148,14 +175,14 @@ pub fn update_db() -> anyhow::Result<DBStatus> {
     // Load environment variables
     dotenv().ok(); // consuming the error if no .env file
 
-    let influxdb_url = env::var("INFLUXDB_URL")?;
-    let influxdb_token = env::var("INFLUXDB_TOKEN")?;
-    let influxdb_org = env::var("INFLUXDB_ORG")?;
-    let influxdb_bucket = env::var("INFLUXDB_BUCKET")?;
+    let influxdb_url = env::var("INFLUXDB_URL").with_context(|| "INFLUXDB_URL not set")?;
+    let influxdb_token = env::var("INFLUXDB_TOKEN").with_context(|| "INFLUXDB_TOKEN not set")?;
+    let influxdb_org = env::var("INFLUXDB_ORG").with_context(|| "INFLUXDB_ORG not set")?;
+    let influxdb_bucket = env::var("INFLUXDB_BUCKET").with_context(|| "INFLUXDB_BUCKET not set")?;
 
     let args = Args::parse();
 
-    let metrics = collect_metrics(args.metrics_config)?;
+    let metrics = collect_metrics(&args.metrics_config)?;
     if metrics.is_empty() {
         return Ok(DBStatus::NoUpdate);
     }
