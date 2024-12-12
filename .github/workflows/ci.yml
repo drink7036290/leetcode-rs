@@ -105,10 +105,11 @@ jobs:
         run: |
           envsubst < .github/templates/metrics_template.json > metrics.json
           jq empty metrics.json || (echo "Invalid JSON format in metrics.json"; exit 1)
+          cat metrics.json
         env:
           SUB_CRATE: ${{ matrix.combo.subcrate }}
           BENCH: ${{ matrix.combo.bench }}
-          BENCH_METRICS_PATH: $BENCH_METRICS_PATH
+          BENCH_METRICS_PATH: ${{ env.BENCH_METRICS_PATH }}
 
       - name: Send Benchmark Data to InfluxDB, adjust Grafana dashboard's time range, along with collecting coverage data
         run: |

@@ -8,7 +8,7 @@
     }
   },
   {
-    "path": "$BENCH_METRICS_PATH",
+    "path": "${BENCH_METRICS_PATH}",
     "filters": {
       "max_rss_in_kb": "needed",
       "cpu_percentage": "optional",
