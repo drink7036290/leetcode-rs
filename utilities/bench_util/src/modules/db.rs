@@ -181,7 +181,7 @@ pub fn update_db() -> anyhow::Result<DBStatus> {
     let client = Client::new();
 
     let response = client
-        .post(&url)
+        .post(url)
         .header("Authorization", format!("Token {}", influxdb_token))
         .header("Content-Type", "text/plain; charset=utf-8")
         .body(line)
