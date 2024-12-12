@@ -195,8 +195,8 @@ pub fn update_db() -> anyhow::Result<DBStatus> {
     // Prepare the InfluxDB line protocol data
     // Include all relevant statistics
     let line = format!(
-        "{},qname={}{SINGLE_SPACE}{metrics}{SINGLE_SPACE}{timestamp}",
-        args.bench, args.sub_crate,
+        "bench_1212,qname={},impl={}{SINGLE_SPACE}{metrics}{SINGLE_SPACE}{timestamp}",
+        args.sub_crate, args.bench,
     );
 
     // Send the data to InfluxDB
