@@ -1,3 +1,4 @@
+use super::constants::{INFLUXDB_BUCKET, MEASUREMENT_NAME};
 use anyhow::{anyhow, Context, Result};
 use chrono::{DateTime, Duration, Utc};
 use dotenvy::dotenv;
@@ -13,28 +14,30 @@ fn get_time_start() -> Result<DateTime<Utc>> {
 
     let client = Client::new();
 
-    let query = r#"
-    // Flux query to get earliest data saved in InfluxDB instead of GitHub's earliest commit
-    // Adjust the query as needed
-    from(bucket: "leetcode-rs_bench")
-        |> range(start: -30d)
-        |> filter(fn: (r) =>
-          r._measurement == "benchmark" and
-          exists r.name and
-          r._field == "slope_point_estimate"
-        )
+    let query = format!(
+        r#"
+        // Flux query to get earliest data saved in InfluxDB instead of GitHub's earliest commit
+        // Adjust the query as needed
+        from(bucket: "{bucket}")
+            |> range(start: -30d)
+            |> filter(fn: (r) =>
+              r._measurement == "{measurement}"
+            )
 
-        // split into smaller groups(by series) 
-        |> group()
+            // split into smaller groups(by series) 
+            |> group()
 
-        // sort each group based on _time; collect the smallest one from each group;
-        // sort them again as group level and get the smallest one
-        |> first() 
-        
-        |> map(fn: (r) => ({
-            text: string(v: r._time)
-        }))
-    "#;
+            // sort each group based on _time; collect the smallest one from each group;
+            // sort them again as group level and get the smallest one
+            |> first() 
+
+            |> map(fn: (r) => ({{  // double curly braces to avoid conflict with Rust's macro
+                text: string(v: r._time)
+            }}))  // double curly braces to avoid conflict with Rust's macro
+        "#,
+        bucket = INFLUXDB_BUCKET,
+        measurement = MEASUREMENT_NAME
+    );
 
     let response = client
         .post(format!("{}/api/v2/query", influxdb_url))

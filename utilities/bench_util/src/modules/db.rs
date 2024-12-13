@@ -1,3 +1,4 @@
+use super::constants::MEASUREMENT_NAME;
 use anyhow::{anyhow, Context, Ok};
 use clap::Parser;
 use dotenvy::dotenv;
@@ -7,7 +8,6 @@ use std::env;
 use std::fmt::Write;
 use std::fs::File;
 use std::io::BufReader;
-
 pub enum DBStatus {
     Updated,
     NoUpdate,
@@ -199,7 +199,7 @@ pub fn update_db() -> anyhow::Result<DBStatus> {
     // Prepare the InfluxDB line protocol data
     // Include all relevant statistics
     let line = format!(
-        "bench_20241213,qname={},impl={}{SINGLE_SPACE}{metrics}{SINGLE_SPACE}{timestamp}",
+        "{MEASUREMENT_NAME},qname={},impl={}{SINGLE_SPACE}{metrics}{SINGLE_SPACE}{timestamp}",
         args.sub_crate,
         args.bench.trim_start_matches("bench_"),
     );

@@ -15,6 +15,6 @@
 [codecov-badge]: https://codecov.io/github/drink7036290/leetcode-rs/branch/main/graph/badge.svg?token=WLGOTCEPO3
 [codecov-url]: https://codecov.io/github/drink7036290/leetcode-rs
 [benchmark-badge]: https://img.shields.io/badge/Benchmarks-Grafana-red
-[benchmark-url]: https://planetsacademe0j.grafana.net/public-dashboards/e85f07d0beb84a688ae045b995a5e861
+[benchmark-url]: https://planetsacademe0j.grafana.net/d/fe5wp1pxzgzr4a/leetcode-rs
 
 This repository contains practice solutions for LeetCode problems in Rust.
