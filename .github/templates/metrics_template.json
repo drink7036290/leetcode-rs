@@ -2,17 +2,14 @@
   {
     "path": "target/criterion/${SUB_CRATE}_${BENCH}/new/estimates.json",
     "filters": {
-      "slope.confidence_interval.lower_bound": "optional",
-      "slope.confidence_interval.upper_bound": "optional",
-      "slope.point_estimate": "needed"
+      "slope.point_estimate": "Runtime_estimate"
     }
   },
   {
     "path": "${BENCH_METRICS_PATH}",
     "filters": {
-      "max_rss_in_kb": "needed",
-      "cpu_percentage": "optional",
-      "wall_clock_in_seconds": "optional"
+      "max_rss_in_kb": "Max_RSS_in_KB",
+      "cpu_percentage": "CPUs_usage"
     }
   }
 ]

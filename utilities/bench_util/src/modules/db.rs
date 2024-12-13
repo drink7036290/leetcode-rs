@@ -71,12 +71,9 @@ fn collect_metrics_from_single_json(
     let mut metrics = String::with_capacity(128); // Adjust based on expected size
 
     // Apply each filter
-    for (field_path, requirement) in filters.iter() {
-        let requirement_str = requirement.as_str().unwrap_or("optional");
-        let is_needed = requirement_str.eq_ignore_ascii_case("needed");
-
+    for (field_path, rename) in filters.iter() {
         let field_value = get_nested_value(&data, field_path);
-        if field_value.is_none() && is_needed {
+        if field_value.is_none() {
             return Err(anyhow!(
                 "Required field '{}' not found in '{}' (from metrics config)",
                 field_path,
@@ -102,6 +99,13 @@ fn collect_metrics_from_single_json(
                 }
             };
 
+            let mut rename_str = field_path;
+            if let Value::String(s) = rename {
+                if !s.is_empty() {
+                    rename_str = s;
+                }
+            }
+
             if !metrics.is_empty() {
                 write!(&mut metrics, ",").with_context(|| {
                     format!(
@@ -110,11 +114,11 @@ fn collect_metrics_from_single_json(
                     )
                 })?;
             }
-            write!(&mut metrics, "{}={}", field_path, val_str.trim_matches('%')).with_context(
+            write!(&mut metrics, "{}={}", rename_str, val_str.trim_matches('%')).with_context(
                 || {
                     format!(
                         "Failed to append '{}={}' to metrics string for JSON '{}'",
-                        field_path,
+                        rename_str,
                         val_str.trim_matches('%'),
                         metrics_path
                     )
@@ -195,8 +199,9 @@ pub fn update_db() -> anyhow::Result<DBStatus> {
     // Prepare the InfluxDB line protocol data
     // Include all relevant statistics
     let line = format!(
-        "bench_1212,qname={},impl={}{SINGLE_SPACE}{metrics}{SINGLE_SPACE}{timestamp}",
-        args.sub_crate, args.bench,
+        "bench_20241213,qname={},impl={}{SINGLE_SPACE}{metrics}{SINGLE_SPACE}{timestamp}",
+        args.sub_crate,
+        args.bench.trim_start_matches("bench_"),
     );
 
     // Send the data to InfluxDB
