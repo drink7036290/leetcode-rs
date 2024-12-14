@@ -13,26 +13,6 @@ pub enum DBStatus {
     NoUpdate,
 }
 
-/// Example METRICS.json structure:
-///
-/// [
-///   {
-///     "path": "path/to/estimates.json",
-///     "filters": {
-///       "slope.confidence_interval.lower_bound": "needed",
-///       "slope.confidence_interval.upper_bound": "needed",
-///       "slope.point_estimate": "needed"
-///     }
-///   },
-///   {
-///     "path": "path/to/bench_metric_path.json",
-///     "filters": {
-///       "max_rss_in_kb": "needed",
-///       "cpu_percentage": "optional",
-///       "wall_clock_in_seconds": "optional"
-///     }
-///   }
-/// ]
 #[derive(Parser, Debug)]
 struct Args {
     /// A JSON configuration file describing what metrics to gather.
@@ -132,6 +112,7 @@ fn collect_metrics_from_single_json(
     Ok(metrics)
 }
 
+/// reference: .github/templates/metrics_template.json
 fn collect_metrics(metrics_config: &str) -> anyhow::Result<String> {
     let file = File::open(metrics_config)
         .with_context(|| format!("Failed to open metrics config file '{}'", metrics_config))?;
