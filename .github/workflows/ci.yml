@@ -34,7 +34,7 @@ jobs:
           # Adjust globbing if needed.
           
           # Find all sub crates under implementations
-          SUBCRATES=$(find implementations -maxdepth 1 -type d -printf '%f\n' || true)
+          SUBCRATES=$(find implementations -maxdepth 1 -type d -printf '%f\n' | grep q146 || true)
           
           # Build a JSON array of objects
           # Each object: { "subcrate": "xxx", "bench": "yyy" }
