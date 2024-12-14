@@ -1,31 +1,16 @@
+use super::args::Args;
 use super::constants::MEASUREMENT_NAME;
 use anyhow::{anyhow, Context, Ok};
-use clap::Parser;
-use dotenvy::dotenv;
 use reqwest::blocking::Client;
 use serde_json::{Map, Value};
 use std::env;
 use std::fmt::Write;
 use std::fs::File;
 use std::io::BufReader;
+
 pub enum DBStatus {
     Updated,
     NoUpdate,
-}
-
-#[derive(Parser, Debug)]
-struct Args {
-    /// A JSON configuration file describing what metrics to gather.
-    #[arg(long, value_name = "METRICS_CONFIG_PATH")]
-    metrics_config: String,
-
-    /// e.g., "qxxx_with_blabla"
-    #[arg(long, value_name = "SUB_CRATE_NAME")]
-    sub_crate: String,
-
-    /// e.g., "bench_IMPL"
-    #[arg(long, value_name = "BENCH_NAME")]
-    bench: String,
 }
 
 /// Dynamically extracts fields from a JSON `Value` using a dot-delimited path (e.g. "slope.confidence_interval.lower_bound")
@@ -156,16 +141,11 @@ fn collect_metrics(metrics_config: &str) -> anyhow::Result<String> {
     Ok(metrics)
 }
 
-pub fn update_db() -> anyhow::Result<DBStatus> {
-    // Load environment variables
-    dotenv().ok(); // consuming the error if no .env file
-
+pub fn update_db(args: &Args) -> anyhow::Result<DBStatus> {
     let influxdb_url = env::var("INFLUXDB_URL").with_context(|| "INFLUXDB_URL not set")?;
     let influxdb_token = env::var("INFLUXDB_TOKEN").with_context(|| "INFLUXDB_TOKEN not set")?;
     let influxdb_org = env::var("INFLUXDB_ORG").with_context(|| "INFLUXDB_ORG not set")?;
     let influxdb_bucket = env::var("INFLUXDB_BUCKET").with_context(|| "INFLUXDB_BUCKET not set")?;
-
-    let args = Args::parse();
 
     let metrics = collect_metrics(&args.metrics_config)?;
     if metrics.is_empty() {

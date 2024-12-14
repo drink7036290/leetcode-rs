@@ -1,7 +1,6 @@
 use super::constants::{INFLUXDB_BUCKET, MEASUREMENT_NAME};
 use anyhow::{anyhow, Context, Result};
 use chrono::{DateTime, Duration, Utc};
-use dotenvy::dotenv;
 use reqwest::blocking::Client;
 use serde_json::Value;
 use std::env;
@@ -159,9 +158,6 @@ fn update_dashboard(time_start: DateTime<Utc>, time_end: DateTime<Utc>) -> Resul
 }
 
 pub fn update_dashboard_time_range() -> Result<()> {
-    // Load environment variables from .env file (optional)
-    dotenv().ok();
-
     // Calculate desired time range
     let mut time_end = Utc::now();
     let mut time_start = get_time_start()?;
