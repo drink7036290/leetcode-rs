@@ -111,16 +111,48 @@ jobs:
           BENCH: ${{ matrix.combo.bench }}
           BENCH_METRICS_PATH: ${{ env.BENCH_METRICS_PATH }}
 
-      - name: Send Benchmark Data to InfluxDB, adjust Grafana dashboard's time range, along with collecting coverage data
+      - name: Send Benchmark Data to InfluxDB, along with collecting coverage data
         run: |
-          cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info -- --metrics-config="metrics.json" --sub-crate=${{ matrix.combo.subcrate }} --bench=${{ matrix.combo.bench }}
+          cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info -- update-db --metrics-config="metrics.json" --sub-crate=${{ matrix.combo.subcrate }} --bench=${{ matrix.combo.bench }}
         env:
           INFLUXDB_URL: ${{ secrets.INFLUXDB_URL }}
           INFLUXDB_TOKEN: ${{ secrets.INFLUXDB_TOKEN }}
           INFLUXDB_ORG: ${{ secrets.INFLUXDB_ORG }}
           INFLUXDB_BUCKET: ${{ secrets.INFLUXDB_BUCKET }}
-          GIT_COMMIT_SHA: ${{ github.sha }}
-          GIT_BRANCH: ${{ github.ref_name }}
+
+      - name: Upload coverage data to codecov
+        uses: codecov/codecov-action@v5
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          files: lcov_bench_util.info
+
+  update-dashboard-time-range:
+    needs: bench
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust ${{ env.rust_nightly }}
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.rust_nightly }}
+          components: llvm-tools-preview
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov
+
+      - name: Adjust Grafana dashboard's time range, along with collecting coverage data
+        run: |
+          cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info -- update-dashboard-time-range
+        env:
+          INFLUXDB_URL: ${{ secrets.INFLUXDB_URL }}
+          INFLUXDB_TOKEN: ${{ secrets.INFLUXDB_TOKEN }}
+          INFLUXDB_ORG: ${{ secrets.INFLUXDB_ORG }}
+          INFLUXDB_BUCKET: ${{ secrets.INFLUXDB_BUCKET }}
           GRAFANA_URL: ${{ secrets.GRAFANA_URL }}
           GRAFANA_SERVICE_ACCOUNT_TOKEN: ${{ secrets.GRAFANA_SERVICE_ACCOUNT_TOKEN }}
           GRAFANA_DASHBOARD_UID: ${{ secrets.GRAFANA_DASHBOARD_UID }}

@@ -1,4 +1,3 @@
-use super::args::Args;
 use super::constants::MEASUREMENT_NAME;
 use anyhow::{anyhow, Context, Ok};
 use reqwest::blocking::Client;
@@ -7,11 +6,6 @@ use std::env;
 use std::fmt::Write;
 use std::fs::File;
 use std::io::BufReader;
-
-pub enum DBStatus {
-    Updated,
-    NoUpdate,
-}
 
 /// Dynamically extracts fields from a JSON `Value` using a dot-delimited path (e.g. "slope.confidence_interval.lower_bound")
 fn get_nested_value<'a>(value: &'a Value, field_path: &str) -> Option<&'a Value> {
@@ -141,15 +135,15 @@ fn collect_metrics(metrics_config: &str) -> anyhow::Result<String> {
     Ok(metrics)
 }
 
-pub fn update_db(args: &Args) -> anyhow::Result<DBStatus> {
+pub fn update_db(metrics_config: &str, sub_crate: &str, bench: &str) -> anyhow::Result<()> {
     let influxdb_url = env::var("INFLUXDB_URL").with_context(|| "INFLUXDB_URL not set")?;
     let influxdb_token = env::var("INFLUXDB_TOKEN").with_context(|| "INFLUXDB_TOKEN not set")?;
     let influxdb_org = env::var("INFLUXDB_ORG").with_context(|| "INFLUXDB_ORG not set")?;
     let influxdb_bucket = env::var("INFLUXDB_BUCKET").with_context(|| "INFLUXDB_BUCKET not set")?;
 
-    let metrics = collect_metrics(&args.metrics_config)?;
+    let metrics = collect_metrics(metrics_config)?;
     if metrics.is_empty() {
-        return Ok(DBStatus::NoUpdate);
+        return Ok(());
     }
 
     let timestamp = chrono::Utc::now()
@@ -160,9 +154,8 @@ pub fn update_db(args: &Args) -> anyhow::Result<DBStatus> {
     // Prepare the InfluxDB line protocol data
     // Include all relevant statistics
     let line = format!(
-        "{MEASUREMENT_NAME},qname={},impl={}{SINGLE_SPACE}{metrics}{SINGLE_SPACE}{timestamp}",
-        args.sub_crate,
-        args.bench.trim_start_matches("bench_"),
+        "{MEASUREMENT_NAME},qname={sub_crate},impl={}{SINGLE_SPACE}{metrics}{SINGLE_SPACE}{timestamp}",
+        bench.trim_start_matches("bench_"),
     );
 
     // Send the data to InfluxDB
@@ -181,19 +174,14 @@ pub fn update_db(args: &Args) -> anyhow::Result<DBStatus> {
         .send()?;
 
     if response.status().is_success() {
-        println!(
-            "Successfully wrote data for {} {}",
-            args.sub_crate, args.bench,
-        );
+        println!("Successfully wrote data for {sub_crate} {bench}",);
     } else {
         eprintln!(
-            "Failed to write data for {} {}. Status: {}. Body: {}",
-            args.sub_crate,
-            args.bench,
+            "Failed to write data for {sub_crate} {bench}. Status: {}. Body: {}",
             response.status(),
             response.text()?
         );
     }
 
-    Ok(DBStatus::Updated)
+    Ok(())
 }
