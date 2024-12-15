@@ -1,11 +1,11 @@
-use super::constants::{INFLUXDB_BUCKET, MEASUREMENT_NAME};
+use super::constants::*;
 use anyhow::{anyhow, Context, Result};
 use chrono::{DateTime, Duration, Utc};
 use reqwest::blocking::Client;
 use serde_json::Value;
 use std::env;
 
-fn get_time_start() -> Result<DateTime<Utc>> {
+fn query_time_from_db(query: &str) -> Result<DateTime<Utc>> {
     // Fetch environment variables
     let influxdb_url = env::var("INFLUXDB_URL").context("INFLUXDB_URL not set")?;
     let influxdb_token = env::var("INFLUXDB_TOKEN").context("INFLUXDB_TOKEN not set")?;
@@ -13,37 +13,17 @@ fn get_time_start() -> Result<DateTime<Utc>> {
 
     let client = Client::new();
 
-    let query = format!(
-        r#"
-        // Flux query to get earliest data saved in InfluxDB instead of GitHub's earliest commit
-        // Adjust the query as needed
-        from(bucket: "{bucket}")
-            |> range(start: -30d)
-            |> filter(fn: (r) =>
-              r._measurement == "{measurement}"
-            )
-
-            // split into smaller groups(by series) 
-            |> group()
-
-            // sort each group based on _time; collect the smallest one from each group;
-            // sort them again as group level and get the smallest one
-            |> first() 
-
-            |> map(fn: (r) => ({{  // double curly braces to avoid conflict with Rust's macro
-                text: string(v: r._time)
-            }}))  // double curly braces to avoid conflict with Rust's macro
-        "#,
-        bucket = INFLUXDB_BUCKET,
-        measurement = MEASUREMENT_NAME
-    );
+    // Replace placeholders
+    let new_query = query
+        .replace("${InfluxDB_Bucket}", INFLUXDB_BUCKET)
+        .replace("${Measurement}", MEASUREMENT_NAME);
 
     let response = client
         .post(format!("{}/api/v2/query", influxdb_url))
         .header("Authorization", format!("Token {}", influxdb_token))
         .header("Content-Type", "application/vnd.flux")
         .query(&[("org", influxdb_org)])
-        .body(query)
+        .body(new_query)
         .send()?;
 
     let text = response.text()?;
@@ -73,14 +53,52 @@ fn get_time_start() -> Result<DateTime<Utc>> {
     Ok(time_start)
 }
 
-fn update_time_range(
-    dashboard_json: &mut Value,
-    time_start: DateTime<Utc>,
-    time_end: DateTime<Utc>,
-) -> Result<()> {
+// reference: Grafana's Dashboard JSON Model
+fn update_time_range(dashboard_json: &mut Value) -> Result<()> {
+    // Access the "dashboard" field
     let dashboard = dashboard_json
         .get_mut("dashboard")
         .ok_or_else(|| anyhow!("Missing 'dashboard' field"))?;
+
+    // Access the "templating" object
+    let templating = dashboard
+        .get_mut("templating")
+        .and_then(|v| v.as_object_mut())
+        .ok_or_else(|| anyhow!("Missing or invalid 'templating'"))?;
+
+    // Access the "list" array
+    let list = templating
+        .get_mut("list")
+        .and_then(|v| v.as_array_mut())
+        .ok_or_else(|| anyhow!("'list' is not an array"))?;
+
+    let mut time_end = Utc::now();
+    let mut time_start = time_end - Duration::days(1); // default time
+
+    // Iterate through the array of variables
+    for var in list.iter_mut() {
+        // Check if name is "_earliest_commit"
+        if let Some(name) = var.get("name").and_then(|n| n.as_str()) {
+            if name == "_earliest_commit" {
+                // Access the query field if present
+                if let Some(query_val) = var.get("query") {
+                    if let Some(query_str) = query_val.as_str() {
+                        time_start = query_time_from_db(query_str)?;
+                    }
+                }
+            }
+        }
+    }
+
+    // Expand the time range by 10% on each side
+    let shift = (time_end - time_start).num_seconds() / 10;
+    time_start -= Duration::seconds(shift);
+    time_end += Duration::seconds(shift);
+
+    println!(
+        "Setting Dashboard Time Range from {} to {}",
+        time_start, time_end
+    );
 
     dashboard["time"]["from"] = Value::String(time_start.to_rfc3339());
     dashboard["time"]["to"] = Value::String(time_end.to_rfc3339());
@@ -88,7 +106,7 @@ fn update_time_range(
     Ok(())
 }
 
-fn update_dashboard(time_start: DateTime<Utc>, time_end: DateTime<Utc>) -> Result<()> {
+pub fn update_dashboard_time_range() -> Result<()> {
     // Load environment variables
     let grafana_url = env::var("GRAFANA_URL").context("GRAFANA_URL not set")?;
     let grafana_token = env::var("GRAFANA_SERVICE_ACCOUNT_TOKEN")
@@ -124,7 +142,7 @@ fn update_dashboard(time_start: DateTime<Utc>, time_end: DateTime<Utc>) -> Resul
         .with_context(|| "Failed to parse dashboard JSON")?;
 
     // Update the time range
-    update_time_range(&mut dashboard_json, time_start, time_end)?;
+    update_time_range(&mut dashboard_json)?;
 
     // Prepare the payload
     let payload = serde_json::json!({
@@ -153,27 +171,6 @@ fn update_dashboard(time_start: DateTime<Utc>, time_end: DateTime<Utc>) -> Resul
     }
 
     println!("Dashboard time range updated successfully.");
-
-    Ok(())
-}
-
-pub fn update_dashboard_time_range() -> Result<()> {
-    // Calculate desired time range
-    let mut time_end = Utc::now();
-    let mut time_start = get_time_start()?;
-
-    // Expand the time range by 10% on each side
-    let shift = (time_end - time_start).num_seconds() / 10;
-    time_start -= Duration::seconds(shift);
-    time_end += Duration::seconds(shift);
-
-    println!(
-        "Setting Dashboard Time Range from {} to {}",
-        time_start, time_end
-    );
-
-    // Update dashboard
-    update_dashboard(time_start, time_end)?;
 
     Ok(())
 }
