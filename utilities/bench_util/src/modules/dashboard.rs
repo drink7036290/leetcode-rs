@@ -6,52 +6,78 @@ use retry::{delay::Exponential, retry, OperationResult};
 use serde_json::Value;
 use std::env;
 
-fn query_time_from_db(query: &str) -> Result<DateTime<Utc>> {
-    // Fetch environment variables
-    let influxdb_url = env::var("INFLUXDB_URL").context("INFLUXDB_URL not set")?;
-    let influxdb_token = env::var("INFLUXDB_TOKEN").context("INFLUXDB_TOKEN not set")?;
-    let influxdb_org = env::var("INFLUXDB_ORG").context("INFLUXDB_ORG not set")?;
+pub fn update_dashboard_time_range() -> Result<()> {
+    let (grafana_url, grafana_token, dashboard_uid) = load_grafana_env()?;
 
     let client = Client::new();
 
-    // Replace placeholders
-    let new_query = query
-        .replace("${InfluxDB_Bucket}", INFLUXDB_BUCKET)
-        .replace("${Measurement}", MEASUREMENT_NAME);
+    let mut dashboard_json: Value =
+        fetch_dashboard(&client, &grafana_url, &grafana_token, &dashboard_uid)?;
 
-    let response = client
-        .post(format!("{}/api/v2/query", influxdb_url))
-        .header("Authorization", format!("Token {}", influxdb_token))
-        .header("Content-Type", "application/vnd.flux")
-        .query(&[("org", influxdb_org)])
-        .body(new_query)
-        .send()?;
+    update_time_range(&mut dashboard_json)?;
 
-    let text = response.text()?;
-    let mut time_start = Utc::now() - Duration::days(1); // default time
+    update_dashboard(&client, &grafana_url, &grafana_token, &mut dashboard_json)
+}
 
-    // Parse CSV response and extract times
-    let lines: Vec<&str> = text.lines().take(2).collect();
-    if lines.len() < 2 {
-        // maybe influxdb has flushed all the data, return a default time
-        return Ok(time_start);
-    }
+fn load_grafana_env() -> Result<(String, String, String)> {
+    // Load environment variables
+    let grafana_url = env::var("GRAFANA_URL").context("GRAFANA_URL not set")?;
+    let grafana_token = env::var("GRAFANA_SERVICE_ACCOUNT_TOKEN")
+        .context("GRAFANA_SERVICE_ACCOUNT_TOKEN not set")?;
+    let dashboard_uid =
+        env::var("GRAFANA_DASHBOARD_UID").context("GRAFANA_DASHBOARD_UID not set")?;
 
-    // Example response:
-    // ",result,table,text"
-    // ",_result,0,2024-12-05T01:42:34.008261000Z"
+    Ok((grafana_url, grafana_token, dashboard_uid))
+}
 
-    let titles = lines[0].split(',');
-    let values = lines[1].split(',');
+fn fetch_dashboard(
+    client: &Client,
+    grafana_url: &str,
+    grafana_token: &str,
+    dashboard_uid: &str,
+) -> Result<Value> {
+    let operation = || {
+        let response = client
+            .get(format!(
+                "{}/api/dashboards/uid/{}",
+                grafana_url, dashboard_uid
+            ))
+            .bearer_auth(grafana_token)
+            .send()
+            .with_context(|| "Failed to send request to Grafana API")?;
 
-    for (title, value) in titles.zip(values) {
-        if title == "text" {
-            time_start = chrono::DateTime::parse_from_rfc3339(value)?.with_timezone(&chrono::Utc);
-            break;
+        let status = response.status();
+        match status.as_u16() {
+            200..=299 => Ok(OperationResult::Ok(response)), // is_success()
+            500..=599 => Ok(OperationResult::Retry(anyhow!("Server error: {}", status))), // is_server_error()
+            429 => Ok(OperationResult::Retry(anyhow!("Rate limited: {}", status))),
+            400..=499 => Err(anyhow!(
+                "Failed to fetch dashboard: Client error: {} - {}",
+                status,
+                response
+                    .text()
+                    .unwrap_or_else(|_| "Unknown error".to_string())
+            )),
+            _ => Err(anyhow!(
+                "Failed to fetch dashboard: Unhandled status: {} - {}",
+                status,
+                response
+                    .text()
+                    .unwrap_or_else(|_| "Unknown error".to_string())
+            )),
         }
-    }
+    };
 
-    Ok(time_start)
+    let retry_strategy = Exponential::from_millis(INITIAL_DELAY_MS).take(MAX_RETRIES);
+
+    let response = match retry(retry_strategy, operation).map_err(|e| anyhow!(e))? {
+        OperationResult::Ok(response) => response,
+        OperationResult::Retry(err) | OperationResult::Err(err) => return Err(err),
+    };
+
+    response
+        .json()
+        .with_context(|| "Failed to parse dashboard JSON")
 }
 
 // reference: Grafana's Dashboard JSON Model
@@ -107,64 +133,60 @@ fn update_time_range(dashboard_json: &mut Value) -> Result<()> {
     Ok(())
 }
 
-pub fn update_dashboard_time_range() -> Result<()> {
-    // Load environment variables
-    let grafana_url = env::var("GRAFANA_URL").context("GRAFANA_URL not set")?;
-    let grafana_token = env::var("GRAFANA_SERVICE_ACCOUNT_TOKEN")
-        .context("GRAFANA_SERVICE_ACCOUNT_TOKEN not set")?;
-    let dashboard_uid =
-        env::var("GRAFANA_DASHBOARD_UID").context("GRAFANA_DASHBOARD_UID not set")?;
+fn query_time_from_db(query: &str) -> Result<DateTime<Utc>> {
+    // Fetch environment variables
+    let influxdb_url = env::var("INFLUXDB_URL").context("INFLUXDB_URL not set")?;
+    let influxdb_token = env::var("INFLUXDB_TOKEN").context("INFLUXDB_TOKEN not set")?;
+    let influxdb_org = env::var("INFLUXDB_ORG").context("INFLUXDB_ORG not set")?;
 
     let client = Client::new();
 
-    let operation = || {
-        let response = client
-            .get(format!(
-                "{}/api/dashboards/uid/{}",
-                grafana_url, dashboard_uid
-            ))
-            .bearer_auth(&grafana_token)
-            .send()
-            .with_context(|| "Failed to send request to Grafana API")?;
+    // Replace placeholders
+    let new_query = query
+        .replace("${InfluxDB_Bucket}", INFLUXDB_BUCKET)
+        .replace("${Measurement}", MEASUREMENT_NAME);
 
-        if response.status().is_success() {
-            Ok(OperationResult::Ok(response))
-        } else if response.status().is_server_error() {
-            // Retry on server errors
-            Ok(OperationResult::Retry(anyhow!(
-                "Server error: {}",
-                response.status()
-            )))
-        } else {
-            // Do not retry on client errors
-            Err(anyhow!(
-                "Failed to fetch dashboard: {} - {}",
-                response.status(),
-                response
-                    .text()
-                    .unwrap_or_else(|_| "Unknown error".to_string())
-            ))
+    let response = client
+        .post(format!("{}/api/v2/query", influxdb_url))
+        .header("Authorization", format!("Token {}", influxdb_token))
+        .header("Content-Type", "application/vnd.flux")
+        .query(&[("org", influxdb_org)])
+        .body(new_query)
+        .send()?;
+
+    let text = response.text()?;
+    let mut time_start = Utc::now() - Duration::days(1); // default time
+
+    // Parse CSV response and extract times
+    let lines: Vec<&str> = text.lines().take(2).collect();
+    if lines.len() < 2 {
+        // maybe influxdb has flushed all the data, return a default time
+        return Ok(time_start);
+    }
+
+    // Example response:
+    // ",result,table,text"
+    // ",_result,0,2024-12-05T01:42:34.008261000Z"
+
+    let titles = lines[0].split(',');
+    let values = lines[1].split(',');
+
+    for (title, value) in titles.zip(values) {
+        if title == "text" {
+            time_start = chrono::DateTime::parse_from_rfc3339(value)?.with_timezone(&chrono::Utc);
+            break;
         }
-    };
+    }
 
-    let retry_strategy = Exponential::from_millis(INITIAL_DELAY_MS).take(MAX_RETRIES);
+    Ok(time_start)
+}
 
-    let response = match retry(retry_strategy, operation) {
-        Ok(result) => match result {
-            OperationResult::Ok(response) => response,
-            OperationResult::Err(error) => return Err(anyhow!(error.to_string())),
-            OperationResult::Retry(error) => return Err(anyhow!(error.to_string())),
-        },
-        Err(e) => return Err(anyhow!(e.to_string())),
-    };
-
-    let mut dashboard_json: Value = response
-        .json()
-        .with_context(|| "Failed to parse dashboard JSON")?;
-
-    // Update the time range
-    update_time_range(&mut dashboard_json)?;
-
+fn update_dashboard(
+    client: &Client,
+    grafana_url: &str,
+    grafana_token: &str,
+    dashboard_json: &mut Value,
+) -> Result<()> {
     // Prepare the payload
     let payload = serde_json::json!({
         "dashboard": dashboard_json["dashboard"],
@@ -174,7 +196,7 @@ pub fn update_dashboard_time_range() -> Result<()> {
     // Update the dashboard
     let response = client
         .post(format!("{}/api/dashboards/db", grafana_url))
-        .bearer_auth(&grafana_token)
+        .bearer_auth(grafana_token)
         .json(&payload)
         .send()
         .with_context(|| "Failed to send update request to Grafana API")?;
