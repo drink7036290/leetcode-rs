@@ -2,6 +2,7 @@ use super::constants::*;
 use anyhow::{anyhow, Context, Result};
 use chrono::{DateTime, Duration, Utc};
 use reqwest::blocking::Client;
+use retry::{delay::Exponential, retry, OperationResult};
 use serde_json::Value;
 use std::env;
 
@@ -114,28 +115,48 @@ pub fn update_dashboard_time_range() -> Result<()> {
     let dashboard_uid =
         env::var("GRAFANA_DASHBOARD_UID").context("GRAFANA_DASHBOARD_UID not set")?;
 
-    // Fetch the current dashboard JSON
     let client = Client::new();
-    let response = client
-        .get(format!(
-            "{}/api/dashboards/uid/{}",
-            grafana_url, dashboard_uid
-        ))
-        .bearer_auth(&grafana_token)
-        .send()
-        .with_context(|| "Failed to send request to Grafana API")?;
 
-    if !response.status().is_success() {
-        let status = response.status();
-        let error_text = response
-            .text()
-            .unwrap_or_else(|_| "Unknown error".to_string());
-        return Err(anyhow!(
-            "Failed to fetch dashboard: {} - {}",
-            status,
-            error_text
-        ));
-    }
+    let operation = || {
+        let response = client
+            .get(format!(
+                "{}/api/dashboards/uid/{}",
+                grafana_url, dashboard_uid
+            ))
+            .bearer_auth(&grafana_token)
+            .send()
+            .with_context(|| "Failed to send request to Grafana API")?;
+
+        if response.status().is_success() {
+            Ok(OperationResult::Ok(response))
+        } else if response.status().is_server_error() {
+            // Retry on server errors
+            Ok(OperationResult::Retry(anyhow!(
+                "Server error: {}",
+                response.status()
+            )))
+        } else {
+            // Do not retry on client errors
+            Err(anyhow!(
+                "Failed to fetch dashboard: {} - {}",
+                response.status(),
+                response
+                    .text()
+                    .unwrap_or_else(|_| "Unknown error".to_string())
+            ))
+        }
+    };
+
+    let retry_strategy = Exponential::from_millis(INITIAL_DELAY_MS).take(MAX_RETRIES);
+
+    let response = match retry(retry_strategy, operation) {
+        Ok(result) => match result {
+            OperationResult::Ok(response) => response,
+            OperationResult::Err(error) => return Err(anyhow!(error.to_string())),
+            OperationResult::Retry(error) => return Err(anyhow!(error.to_string())),
+        },
+        Err(e) => return Err(anyhow!(e.to_string())),
+    };
 
     let mut dashboard_json: Value = response
         .json()
