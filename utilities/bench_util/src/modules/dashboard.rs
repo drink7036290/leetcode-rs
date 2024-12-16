@@ -106,8 +106,26 @@ fn update_time_range(dashboard_json: &mut Value) -> Result<Option<()>> {
         time_start, time_end
     );
 
-    dashboard["time"]["from"] = Value::String(time_start.to_rfc3339());
-    dashboard["time"]["to"] = Value::String(time_end.to_rfc3339());
+    let time = dashboard
+        .get_mut("time")
+        .and_then(|v| v.as_object_mut())
+        .ok_or_else(|| anyhow!("Missing 'time' field"))?;
+
+    match time
+        .get_mut("from")
+        .ok_or_else(|| anyhow!("Missing 'from' field"))?
+    {
+        Value::String(s) => *s = time_start.to_rfc3339(),
+        _ => return Err(anyhow!("Unexpected 'from' field type")),
+    }
+
+    match time
+        .get_mut("to")
+        .ok_or_else(|| anyhow!("Missing 'to' field"))?
+    {
+        Value::String(s) => *s = time_end.to_rfc3339(),
+        _ => return Err(anyhow!("Unexpected 'to' field type")),
+    }
 
     Ok(Some(()))
 }
@@ -183,7 +201,7 @@ fn get_first_and_last_commit_from_db(
         .has_headers(true) // set to true if the first line is headers
         .from_reader(Cursor::new(text));
 
-    // posibility no headers ?
+    // Ok even no headers
     let headers = rdr.headers()?.clone(); // Clone headers for repeated lookup
 
     let mut records_iter = rdr.records();
