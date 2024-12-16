@@ -1,10 +1,12 @@
 use super::constants::*;
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Context, Ok, Result};
 use chrono::{DateTime, Duration, Utc};
+use csv::{ReaderBuilder, StringRecord};
 use reqwest::blocking::Client;
 use retry::{delay::Exponential, retry, OperationResult};
 use serde_json::Value;
 use std::env;
+use std::io::Cursor;
 
 pub fn update_dashboard_time_range() -> Result<()> {
     let (grafana_url, grafana_token, dashboard_uid) = load_grafana_env()?;
@@ -14,7 +16,9 @@ pub fn update_dashboard_time_range() -> Result<()> {
     let mut dashboard_json: Value =
         fetch_dashboard(&client, &grafana_url, &grafana_token, &dashboard_uid)?;
 
-    update_time_range(&mut dashboard_json)?;
+    if update_time_range(&mut dashboard_json)?.is_none() {
+        return Ok(());
+    }
 
     update_dashboard(&client, &grafana_url, &grafana_token, &mut dashboard_json)
 }
@@ -81,41 +85,16 @@ fn fetch_dashboard(
 }
 
 // reference: Grafana's Dashboard JSON Model
-fn update_time_range(dashboard_json: &mut Value) -> Result<()> {
+fn update_time_range(dashboard_json: &mut Value) -> Result<Option<()>> {
     // Access the "dashboard" field
     let dashboard = dashboard_json
         .get_mut("dashboard")
         .ok_or_else(|| anyhow!("Missing 'dashboard' field"))?;
 
-    // Access the "templating" object
-    let templating = dashboard
-        .get_mut("templating")
-        .and_then(|v| v.as_object_mut())
-        .ok_or_else(|| anyhow!("Missing or invalid 'templating'"))?;
-
-    // Access the "list" array
-    let list = templating
-        .get_mut("list")
-        .and_then(|v| v.as_array_mut())
-        .ok_or_else(|| anyhow!("'list' is not an array"))?;
-
-    let mut time_end = Utc::now();
-    let mut time_start = time_end - Duration::days(1); // default time
-
-    // Iterate through the array of variables
-    for var in list.iter_mut() {
-        // Check if name is "_earliest_commit"
-        if let Some(name) = var.get("name").and_then(|n| n.as_str()) {
-            if name == "_earliest_commit" {
-                // Access the query field if present
-                if let Some(query_val) = var.get("query") {
-                    if let Some(query_str) = query_val.as_str() {
-                        time_start = query_time_from_db(query_str)?;
-                    }
-                }
-            }
-        }
-    }
+    let (mut time_start, mut time_end) = match get_time_range(dashboard)? {
+        Some(t) => t,
+        None => return Ok(None),
+    };
 
     // Expand the time range by 10% on each side
     let shift = (time_end - time_start).num_seconds() / 10;
@@ -130,10 +109,53 @@ fn update_time_range(dashboard_json: &mut Value) -> Result<()> {
     dashboard["time"]["from"] = Value::String(time_start.to_rfc3339());
     dashboard["time"]["to"] = Value::String(time_end.to_rfc3339());
 
-    Ok(())
+    Ok(Some(()))
 }
 
-fn query_time_from_db(query: &str) -> Result<DateTime<Utc>> {
+fn get_time_range(dashboard: &Value) -> Result<Option<(DateTime<Utc>, DateTime<Utc>)>> {
+    // Access the "templating" object
+    let templating = dashboard
+        .get("templating")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| anyhow!("Missing or invalid 'templating'"))?;
+
+    // Access the "list" array
+    let list = templating
+        .get("list")
+        .and_then(|v| v.as_array())
+        .ok_or_else(|| anyhow!("'list' is not an array"))?;
+
+    // get COMMIT_RANGE from the list
+    let var = list
+        .iter()
+        .find(|v| {
+            v.get("name")
+                .and_then(|n| n.as_str())
+                .map_or_else(|| false, |n| n == COMMIT_RANGE)
+        })
+        .ok_or_else(|| anyhow!("No '{}' variable", COMMIT_RANGE))?;
+
+    let query_val = var
+        .get("query")
+        .ok_or_else(|| anyhow!("No 'query' field"))?;
+
+    match query_val {
+        Value::String(s) => get_first_and_last_commit_from_db(s),
+        Value::Object(o) => {
+            let query_str = o
+                .get("query")
+                .and_then(|q| q.as_str())
+                .ok_or_else(|| anyhow!("No 'query' field in object"))?;
+
+            get_first_and_last_commit_from_db(query_str)
+        }
+        _ => Err(anyhow!("Unexpected 'query' field type")),
+    }
+}
+
+fn get_first_and_last_commit_from_db(
+    query: &str,
+) -> Result<Option<(DateTime<Utc>, DateTime<Utc>)>> {
     // Fetch environment variables
     let influxdb_url = env::var("INFLUXDB_URL").context("INFLUXDB_URL not set")?;
     let influxdb_token = env::var("INFLUXDB_TOKEN").context("INFLUXDB_TOKEN not set")?;
@@ -154,31 +176,49 @@ fn query_time_from_db(query: &str) -> Result<DateTime<Utc>> {
         .body(new_query)
         .send()?;
 
+    // seems like the api/v2/query only supports csv output format for now
     let text = response.text()?;
-    let mut time_start = Utc::now() - Duration::days(1); // default time
+    println!("influxdb response:\n{}\n", text);
+    let mut rdr = ReaderBuilder::new()
+        .has_headers(true) // set to true if the first line is headers
+        .from_reader(Cursor::new(text));
 
-    // Parse CSV response and extract times
-    let lines: Vec<&str> = text.lines().take(2).collect();
-    if lines.len() < 2 {
-        // maybe influxdb has flushed all the data, return a default time
-        return Ok(time_start);
+    // posibility no headers ?
+    let headers = rdr.headers()?.clone(); // Clone headers for repeated lookup
+
+    let mut records_iter = rdr.records();
+    let first_record = match records_iter.next() {
+        Some(r) => r?,
+        None => return Ok(None),
+    };
+
+    // Check if there's another record
+    if records_iter.next().is_some() {
+        return Err(anyhow!("More than one record found"));
     }
 
-    // Example response:
-    // ",result,table,text"
-    // ",_result,0,2024-12-05T01:42:34.008261000Z"
+    // Process the single record
+    let first_commit = get_csv_column_value(&headers, &first_record, "first_commit")?;
+    let last_commit = get_csv_column_value(&headers, &first_record, "last_commit")?;
+    Ok(Some((
+        chrono::DateTime::parse_from_rfc3339(first_commit)?.with_timezone(&chrono::Utc),
+        chrono::DateTime::parse_from_rfc3339(last_commit)?.with_timezone(&chrono::Utc),
+    )))
+}
 
-    let titles = lines[0].split(',');
-    let values = lines[1].split(',');
+fn get_csv_column_value<'a>(
+    headers: &StringRecord,
+    record: &'a StringRecord,
+    column_name: &str,
+) -> Result<&'a str> {
+    let idx = headers
+        .iter()
+        .position(|h| h == column_name)
+        .ok_or_else(|| anyhow!("No '{}' column", column_name))?;
 
-    for (title, value) in titles.zip(values) {
-        if title == "text" {
-            time_start = chrono::DateTime::parse_from_rfc3339(value)?.with_timezone(&chrono::Utc);
-            break;
-        }
-    }
-
-    Ok(time_start)
+    record
+        .get(idx)
+        .ok_or_else(|| anyhow!("No '{}' value", column_name))
 }
 
 fn update_dashboard(
