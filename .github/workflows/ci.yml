@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,33 +15,45 @@ env:
   rust_nightly: nightly-2024-05-05
   # Pin a specific miri version
   rust_miri_nightly: nightly-2024-10-21
-  rust_clippy: '1.77'
-  rust_min: '1.70'
+  rust_clippy: "1.77"
+  rust_min: "1.70"
 
 jobs:
-
   define-matrix:
-    needs: tests-pass
+    needs:
+      - tests
+      - nextest_with_coverage
+      - asan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Discover benches
-        id: benches
+        id: discover
         run: |
+          set -euo pipefail
+
           # We'll find all sub-crates, then find *.rs files under each sub-crate's benches/ directory.
           # We assume structure like: implementations/SUBCRATE/benches/BENCH.rs
           # Adjust globbing if needed.
-          
+
           # Find all sub crates under implementations
-          SUBCRATES=$(find implementations -maxdepth 1 -type d -printf '%f\n' | grep q146 || true)
-          
+          SUBCRATES=$(find implementations -mindepth 1 -maxdepth 1 -type d -printf '%f\n' || true)
+
+          # Convert the list of subcrates to a JSON array
+          SUBCRATES_JSON=$(echo "$SUBCRATES" | jq -R . | jq -s .)
+
+          # Output the JSON array to GitHub Actions output
+          echo "subcrates=$SUBCRATES_JSON" >> "$GITHUB_OUTPUT"
+
+          SUBCRATES_FOR_BENCHES=$(echo "$SUBCRATES" | grep q146 || true)
+
           # Build a JSON array of objects
           # Each object: { "subcrate": "xxx", "bench": "yyy" }
           # For each subcrate, we look under benches/ for *.rs files
           JSON='['
           first=true
-          for crate in $SUBCRATES; do
+          for crate in $SUBCRATES_FOR_BENCHES; do
             BENCH_FILES=$(find "implementations/$crate/benches" -maxdepth 1 -name '*.rs' -printf '%f\n' 2>/dev/null || true)
             for bf in $BENCH_FILES; do
               bench_name="${bf%.rs}" # remove .rs extension
@@ -54,11 +66,12 @@ jobs:
             done
           done
           JSON="$JSON]"
-          
+
           echo "benches=$JSON" >> "$GITHUB_OUTPUT"
 
     outputs:
-      benches: ${{ steps.benches.outputs.benches }}
+      benches: ${{ steps.discover.outputs.benches }}
+      subcrates: ${{ steps.discover.outputs.subcrates }}
 
   bench:
     needs: define-matrix
@@ -92,7 +105,7 @@ jobs:
 
           # Use GNU time on Ubuntu, max_rss in KB, cpu_usage in percent
           /usr/bin/time -f '{"max_rss_in_kb": %M, "cpu_percentage": "%P", "wall_clock_in_seconds": %e}' -o $BENCH_METRICS_PATH cargo bench -p ${{ matrix.combo.subcrate }} --bench ${{ matrix.combo.bench }}
-      
+
           # Validate JSON using jq
           jq empty $BENCH_METRICS_PATH || (echo "Invalid JSON format in $BENCH_METRICS_PATH"; exit 1)
 
@@ -111,7 +124,8 @@ jobs:
           BENCH: ${{ matrix.combo.bench }}
           BENCH_METRICS_PATH: ${{ env.BENCH_METRICS_PATH }}
 
-      - name: Send Benchmark Data to InfluxDB, along with collecting coverage data
+      - name:
+          Send Benchmark Data to InfluxDB, along with collecting coverage data
         run: |
           cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info -- update-db --metrics-config="metrics.json" --sub-crate=${{ matrix.combo.subcrate }} --bench=${{ matrix.combo.bench }}
         env:
@@ -145,7 +159,9 @@ jobs:
         with:
           tool: cargo-llvm-cov
 
-      - name: Adjust Grafana dashboard's time range, along with collecting coverage data
+      - name:
+          Adjust Grafana dashboard's time range, along with collecting coverage
+          data
         run: |
           cargo llvm-cov run --release -p bench_util --lcov --output-path lcov_bench_util.info -- update-dashboard-time-range
         env:
@@ -154,7 +170,8 @@ jobs:
           INFLUXDB_ORG: ${{ secrets.INFLUXDB_ORG }}
           INFLUXDB_BUCKET: ${{ secrets.INFLUXDB_BUCKET }}
           GRAFANA_URL: ${{ secrets.GRAFANA_URL }}
-          GRAFANA_SERVICE_ACCOUNT_TOKEN: ${{ secrets.GRAFANA_SERVICE_ACCOUNT_TOKEN }}
+          GRAFANA_SERVICE_ACCOUNT_TOKEN:
+            ${{ secrets.GRAFANA_SERVICE_ACCOUNT_TOKEN }}
           GRAFANA_DASHBOARD_UID: ${{ secrets.GRAFANA_DASHBOARD_UID }}
 
       - name: Upload coverage data to codecov
@@ -166,8 +183,11 @@ jobs:
 
   miri:
     name: miri
-    needs: tests-pass
+    needs: define-matrix
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        subcrate: ${{ fromJSON(needs.define-matrix.outputs.subcrates) }}
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust ${{ env.rust_miri_nightly }}
@@ -182,19 +202,11 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: miri
         run: |
-          cargo miri nextest run --lib --tests --no-fail-fast
+          cargo miri nextest run -p ${{ matrix.subcrate.subcrate }} --lib --tests --no-fail-fast
         env:
-          MIRIFLAGS: -Zmiri-disable-isolation -Zmiri-strict-provenance -Zmiri-retag-fields
-
-  tests-pass:
-    name: tests-pass
-    runs-on: ubuntu-latest
-    needs:
-      - tests
-      - nextest_with_coverage
-      - asan
-    steps:
-      - run: exit 0
+          MIRIFLAGS:
+            -Zmiri-disable-isolation -Zmiri-strict-provenance
+            -Zmiri-retag-fields
 
   asan:
     name: asan
@@ -209,10 +221,12 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ env.rust_nightly }}
-  
+
       - uses: Swatinem/rust-cache@v2
       - name: asan
-        run: cargo test --workspace --all-features --target x86_64-unknown-linux-gnu --tests -- --test-threads 1 --nocapture
+        run:
+          cargo test --workspace --all-features --target
+          x86_64-unknown-linux-gnu --tests -- --test-threads 1 --nocapture
         env:
           RUSTFLAGS: -Z sanitizer=address
           # Ignore `trybuild` errors as they are irrelevant and flaky on nightly
@@ -232,7 +246,7 @@ jobs:
           toolchain: ${{ env.rust_nightly }}
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
-  
+
       - name: Install cargo-nextest
         uses: taiki-e/install-action@v2
         with:
@@ -241,7 +255,7 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-llvm-cov
-  
+
       - name: Collect coverage data
         # Generate separate reports for nextest and doctests, and combine them.
         run: |
@@ -265,7 +279,7 @@ jobs:
       - name: Install Rust ${{ env.rust_stable }}
         uses: dtolnay/rust-toolchain@stable
         with:
-            toolchain: ${{ env.rust_stable }}
+          toolchain: ${{ env.rust_stable }}
 
       - uses: Swatinem/rust-cache@v2
 
