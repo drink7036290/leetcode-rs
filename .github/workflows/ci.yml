@@ -202,7 +202,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: miri
         run: |
-          cargo miri nextest run -p ${{ matrix.subcrate.subcrate }} --lib --tests --no-fail-fast
+          echo ${{ matrix.subcrate }}
+          cargo miri nextest run -p ${{ matrix.subcrate }} --lib --tests --no-fail-fast
         env:
           MIRIFLAGS:
             -Zmiri-disable-isolation -Zmiri-strict-provenance
