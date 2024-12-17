@@ -273,10 +273,10 @@ jobs:
       - basics
     steps:
       - uses: actions/checkout@v4
-      - name: Install Rust ${{ env.rust_stable }}
+      - name: Install Rust ${{ env.rust_nightly }}
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: ${{ env.rust_stable }}
+          toolchain: ${{ env.rust_nightly }}
 
       - uses: Swatinem/rust-cache@v2
 
@@ -301,10 +301,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Rust ${{ env.rust_stable }}
+      - name: Install Rust ${{ env.rust_nightly }}
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: ${{ env.rust_stable }}
+          toolchain: ${{ env.rust_nightly }}
           components: rustfmt
       - uses: Swatinem/rust-cache@v2
       # Check rustfmt
