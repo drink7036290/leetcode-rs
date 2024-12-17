@@ -10,6 +10,7 @@ intrusive-collections = "0.9.7"
 rand = "0.8.5"
 proptest = "1.5.0"
 mockall = "0.13.1"
+cache_util = { path = "../../utilities/cache_util" }
 
 [dev-dependencies]
 rstest = "0.23.0"

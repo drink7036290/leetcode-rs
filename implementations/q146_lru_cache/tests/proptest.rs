@@ -1,6 +1,6 @@
 use proptest::prelude::*;
 
-use q146_lru_cache::utils::test_common::*;
+use cache_util::*;
 
 fn operation_sequence_strategy() -> impl Strategy<Value = Vec<CacheOperation>> {
     let provider = mock_operations_range_provider_default();
