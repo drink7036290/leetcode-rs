@@ -71,7 +71,7 @@ impl LFUCache {
             self.update(node_rc);
         } else {
             if self.map.len() == self.capacity {
-                if let Some(freq_list) = self.freq_map.get_mut(&self.min_freq) {
+                match self.freq_map.get_mut(&self.min_freq) { Some(freq_list) => {
                     if let Some(node_rc) = freq_list.pop_front() {
                         self.map.remove(&node_rc.key);
 
@@ -79,7 +79,7 @@ impl LFUCache {
                             self.freq_map.remove(&self.min_freq);
                         }
                     }
-                }
+                } _ => {}}
             }
 
             let node_rc = Rc::new(Node::new(key, value));
@@ -104,7 +104,7 @@ impl LFUCache {
     fn remove_node_from_freq_list(&mut self, node_rc: &Rc<Node>) {
         let freq = node_rc.freq.get();
 
-        if let Some(freq_list) = self.freq_map.get_mut(&freq) {
+        match self.freq_map.get_mut(&freq) { Some(freq_list) => {
             unsafe {
                 freq_list
                     // the argument *const <A::PointerOps as PointerOps>::Value
@@ -125,7 +125,7 @@ impl LFUCache {
                     self.min_freq += 1;
                 }
             }
-        }
+        } _ => {}}
     }
 
     fn update(&mut self, node_rc: Rc<Node>) {

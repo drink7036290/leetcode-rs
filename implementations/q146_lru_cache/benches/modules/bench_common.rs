@@ -9,7 +9,7 @@ pub static OPERATIONS: Lazy<Vec<CacheOperation>> = Lazy::new(|| {
 
     DefaultOperationsRangeProvider
         .operations_range()
-        .map(|_| rng.gen())
+        .map(|_| rng.r#gen())
         .collect::<Vec<CacheOperation>>()
 });
 

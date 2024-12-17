@@ -76,17 +76,17 @@ impl FreqList {
             .and_then(|weak| weak.upgrade());
         let next_node = node_rc.borrow().next.clone();
 
-        if let Some(prev_rc) = &prev_node {
+        match &prev_node { Some(prev_rc) => {
             prev_rc.borrow_mut().next = next_node.clone();
-        } else {
+        } _ => {
             self.head = next_node.clone();
-        }
+        }}
 
-        if let Some(next_rc) = &next_node {
+        match &next_node { Some(next_rc) => {
             next_rc.borrow_mut().prev = prev_node.as_ref().map(Rc::downgrade);
-        } else {
+        } _ => {
             self.tail = prev_node.clone();
-        }
+        }}
 
         node_rc.borrow_mut().prev = None;
         node_rc.borrow_mut().next = None;
@@ -114,13 +114,13 @@ impl LRUCache {
 
     pub fn get(&mut self, key: i32) -> i32 {
         // trick: cloned() to avoid multiple mutable self, also cloned Rc is cheap
-        if let Some(node_rc) = self.map.get(&key).cloned() {
+        match self.map.get(&key).cloned() { Some(node_rc) => {
             let val = node_rc.borrow().val;
             self.update(node_rc);
             val
-        } else {
+        } _ => {
             -1
-        }
+        }}
     }
 
     pub fn put(&mut self, key: i32, value: i32) {
@@ -129,21 +129,21 @@ impl LRUCache {
         }
 
         // trick: cloned() to avoid multiple mutable self, also cloned Rc is cheap
-        if let Some(node_rc) = self.map.get(&key).cloned() {
+        match self.map.get(&key).cloned() { Some(node_rc) => {
             node_rc.borrow_mut().val = value;
             self.update(node_rc);
-        } else {
+        } _ => {
             if self.map.len() == self.capacity {
-                if let Some(node_rc) = self.freq_list.pop_front() {
+                match self.freq_list.pop_front() { Some(node_rc) => {
                     self.map.remove(&node_rc.borrow().key);
-                }
+                } _ => {}}
             }
 
             let node_rc = Rc::new(RefCell::new(Node::new(key, value)));
             self.map.insert(key, node_rc.clone());
 
             self.freq_list.push_back(&node_rc);
-        }
+        }}
     }
 
     fn update(&mut self, node_rc: Rc<RefCell<Node>>) {

@@ -67,9 +67,9 @@ impl LRUCache {
             self.update(node_rc);
         } else {
             if self.map.len() == self.capacity {
-                if let Some(node_rc) = self.freq_list.pop_front() {
+                match self.freq_list.pop_front() { Some(node_rc) => {
                     self.map.remove(&node_rc.key);
-                }
+                } _ => {}}
             }
 
             let node_rc = Rc::new(Node::new(key, value));
