@@ -151,13 +151,15 @@ impl LFUCache {
             }
             _ => {
                 if self.map.len() == self.capacity {
-                    if let Some(freq_list) = self.freq_map.get_mut(&self.min_freq) { if let Some(node_rc) = freq_list.pop_front() {
-                        self.map.remove(&node_rc.borrow().key);
+                    if let Some(freq_list) = self.freq_map.get_mut(&self.min_freq) {
+                        if let Some(node_rc) = freq_list.pop_front() {
+                            self.map.remove(&node_rc.borrow().key);
 
-                        if freq_list.is_empty() {
-                            self.freq_map.remove(&self.min_freq);
+                            if freq_list.is_empty() {
+                                self.freq_map.remove(&self.min_freq);
+                            }
                         }
-                    } }
+                    }
                 }
 
                 let node_rc = Rc::new(RefCell::new(Node::new(key, value)));
