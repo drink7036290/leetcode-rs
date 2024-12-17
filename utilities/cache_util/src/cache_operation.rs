@@ -1,7 +1,7 @@
 use crate::variables_range::*;
 use proptest::prelude::*;
-use rand::Rng;
 use rand::distributions::{Distribution, Standard};
+use rand::Rng;
 
 // Define an enum to represent cache operations
 #[derive(Debug, Clone)]
