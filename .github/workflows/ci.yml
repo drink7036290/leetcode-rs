@@ -41,7 +41,7 @@ jobs:
           SUBCRATES=$(find implementations -mindepth 1 -maxdepth 1 -type d -printf '%f\n' || true)
 
           # Convert the list of subcrates to a JSON array
-          SUBCRATES_JSON=$(echo "$SUBCRATES" | jq -R . | jq -s .)
+          SUBCRATES_JSON=$(echo "$SUBCRATES" | jq -R . | jq -s . | jq -c .)
 
           # Output the JSON array to GitHub Actions output
           echo "subcrates=$SUBCRATES_JSON" >> "$GITHUB_OUTPUT"
