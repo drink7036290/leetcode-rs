@@ -54,7 +54,7 @@ jobs:
           JSON='['
           first=true
           for crate in $SUBCRATES_FOR_BENCHES; do
-            BENCH_FILES=$(find "implementations/$crate/benches" -maxdepth 1 -name '*.rs' -printf '%f\n' 2>/dev/null || true)
+            BENCH_FILES=$(find "$crate/benches" -maxdepth 1 -name '*.rs' -printf '%f\n' 2>/dev/null || true)
             for bf in $BENCH_FILES; do
               bench_name="${bf%.rs}" # remove .rs extension
               if [ "$first" = true ]; then
