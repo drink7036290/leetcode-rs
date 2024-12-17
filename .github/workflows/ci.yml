@@ -12,11 +12,7 @@ env:
   RUST_BACKTRACE: 1
   # Change to specific Rust release to pin
   rust_stable: stable
-  rust_nightly: nightly-2024-05-05
-  # Pin a specific miri version
-  rust_miri_nightly: nightly-2024-10-21
-  rust_clippy: "1.77"
-  rust_min: "1.70"
+  rust_nightly: nightly-2024-12-02
 
 jobs:
   define-matrix:
@@ -190,10 +186,10 @@ jobs:
         subcrate: ${{ fromJSON(needs.define-matrix.outputs.subcrates) }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install Rust ${{ env.rust_miri_nightly }}
+      - name: Install Rust ${{ env.rust_nightly }}
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: ${{ env.rust_miri_nightly }}
+          toolchain: ${{ env.rust_nightly }}
           components: miri
       - name: Install cargo-nextest
         uses: taiki-e/install-action@v2
@@ -325,10 +321,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Rust ${{ env.rust_clippy }}
+      - name: Install Rust ${{ env.rust_nightly }}
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: ${{ env.rust_clippy }}
+          toolchain: ${{ env.rust_nightly }}
           components: clippy
       - uses: Swatinem/rust-cache@v2
       # Run clippy
