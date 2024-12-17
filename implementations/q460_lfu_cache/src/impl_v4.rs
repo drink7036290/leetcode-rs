@@ -71,17 +71,14 @@ impl LFUCache {
             self.update(node_rc);
         } else {
             if self.map.len() == self.capacity {
-                match self.freq_map.get_mut(&self.min_freq) {
-                    Some(freq_list) => {
-                        if let Some(node_rc) = freq_list.pop_front() {
-                            self.map.remove(&node_rc.key);
+                if let Some(freq_list) = self.freq_map.get_mut(&self.min_freq) {
+                    if let Some(node_rc) = freq_list.pop_front() {
+                        self.map.remove(&node_rc.key);
 
-                            if freq_list.is_empty() {
-                                self.freq_map.remove(&self.min_freq);
-                            }
+                        if freq_list.is_empty() {
+                            self.freq_map.remove(&self.min_freq);
                         }
                     }
-                    _ => {}
                 }
             }
 
@@ -107,30 +104,27 @@ impl LFUCache {
     fn remove_node_from_freq_list(&mut self, node_rc: &Rc<Node>) {
         let freq = node_rc.freq.get();
 
-        match self.freq_map.get_mut(&freq) {
-            Some(freq_list) => {
-                unsafe {
-                    freq_list
-                        // the argument *const <A::PointerOps as PointerOps>::Value
-                        // here A is NodeAdapter and Value is Node
-                        // which means *const Node
-                        // So all below syntax are valid
-                        //      &*node_rc           // miri error
-                        //      node_rc.as_ref()    // miri error
-                        //      Rc::as_ptr(&node_rc)
-                        .cursor_mut_from_ptr(Rc::as_ptr(node_rc))
-                        .remove()
-                        .expect("node not found");
-                }
+        if let Some(freq_list) = self.freq_map.get_mut(&freq) {
+            unsafe {
+                freq_list
+                    // the argument *const <A::PointerOps as PointerOps>::Value
+                    // here A is NodeAdapter and Value is Node
+                    // which means *const Node
+                    // So all below syntax are valid
+                    //      &*node_rc           // miri error
+                    //      node_rc.as_ref()    // miri error
+                    //      Rc::as_ptr(&node_rc)
+                    .cursor_mut_from_ptr(Rc::as_ptr(node_rc))
+                    .remove()
+                    .expect("node not found");
+            }
 
-                if freq_list.is_empty() {
-                    self.freq_map.remove(&freq);
-                    if self.min_freq == freq {
-                        self.min_freq += 1;
-                    }
+            if freq_list.is_empty() {
+                self.freq_map.remove(&freq);
+                if self.min_freq == freq {
+                    self.min_freq += 1;
                 }
             }
-            _ => {}
         }
     }
 
