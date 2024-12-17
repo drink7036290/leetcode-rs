@@ -1,5 +1,5 @@
-use leetcode_prelude::linkedlist;
 use leetcode_prelude::ListNode;
+use leetcode_prelude::linkedlist;
 
 use rstest::rstest;
 

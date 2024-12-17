@@ -1,5 +1,5 @@
 use super::constants::MEASUREMENT_NAME;
-use anyhow::{anyhow, Context, Ok};
+use anyhow::{Context, Ok, anyhow};
 use reqwest::blocking::Client;
 use serde_json::{Map, Value};
 use std::env;

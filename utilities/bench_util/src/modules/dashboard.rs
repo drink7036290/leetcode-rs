@@ -1,9 +1,9 @@
 use super::constants::*;
-use anyhow::{anyhow, Context, Ok, Result};
+use anyhow::{Context, Ok, Result, anyhow};
 use chrono::{DateTime, Duration, Utc};
 use csv::{ReaderBuilder, StringRecord};
 use reqwest::blocking::Client;
-use retry::{delay::Exponential, retry, OperationResult};
+use retry::{OperationResult, delay::Exponential, retry};
 use serde_json::Value;
 use std::env;
 use std::io::Cursor;

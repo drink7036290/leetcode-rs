@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use once_cell::sync::Lazy;
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
