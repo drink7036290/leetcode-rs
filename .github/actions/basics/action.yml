@@ -28,7 +28,7 @@ runs:
         node-version: "latest"
 
     - name: Install markdownlint-cli
-        run: npm install -g markdownlint-cli
+      run: npm install -g markdownlint-cli
       shell: bash
 
     # 4. Run pre-commit hooks on all files
