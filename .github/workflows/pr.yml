@@ -1,0 +1,12 @@
+name: PR Checks
+
+on:
+  pull_request:
+
+jobs:
+  basics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/basics
+        with:
+          rust_nightly: nightly-2024-12-02

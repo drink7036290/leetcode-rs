@@ -287,62 +287,8 @@ jobs:
 
   # Basic actions that must pass before we kick off more expensive tests.
   basics:
-    name: basic checks
-    runs-on: ubuntu-latest
-    needs:
-      - clippy
-      - rustfmt
-      - markdownlint
-    steps:
-      - run: exit 0
-
-  rustfmt:
-    name: rustfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust ${{ env.rust_nightly }}
-        uses: dtolnay/rust-toolchain@stable
+      - uses: ./.github/actions/basics
         with:
-          toolchain: ${{ env.rust_nightly }}
-          components: rustfmt
-      - uses: Swatinem/rust-cache@v2
-      # Check rustfmt
-      - name: "rustfmt --check"
-        # Workaround for rust-lang/cargo#7732
-        run: |
-          if ! rustfmt --check --edition 2024 $(git ls-files '*.rs'); then
-            printf "Please run \`rustfmt --edition 2024 \$(git ls-files '*.rs')\` to fix rustfmt errors.\n" >&2
-            exit 1
-          fi
-
-  clippy:
-    name: clippy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust ${{ env.rust_nightly }}
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: ${{ env.rust_nightly }}
-          components: clippy
-      - uses: Swatinem/rust-cache@v2
-      # Run clippy
-      - name: "clippy --all"
-        run: cargo clippy --all --tests --all-features --no-deps
-
-  markdownlint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: latest
-
-      - name: Install markdownlint-cli
-        run: npm install -g markdownlint-cli
-
-      - name: Run markdownlint
-        run: markdownlint '**/*.md' --ignore node_modules
+          rust_nightly: ${{ env.rust_nightly }}

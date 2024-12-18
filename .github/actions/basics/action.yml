@@ -1,0 +1,46 @@
+name: "Basic Checks"
+
+runs:
+  using: "composite"
+  steps:
+    # 1. Check out repository
+    - uses: actions/checkout@v4
+
+    # 2. Set up Rust nightly toolchain
+    - name: Install Rust nightly
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: ${{ inputs.rust_nightly }}
+        components: clippy, rustfmt
+
+    - uses: Swatinem/rust-cache@v2
+
+    # 3. Set up Node.js for markdownlint
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "latest"
+
+    - name: Install pre-commit
+      run: |
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install pre-commit
+
+    # 4. Run pre-commit hooks on all files
+    - name: Run pre-commit
+      run: pre-commit run --all-files
+
+    # 5. Run linkspector
+    - name: Run linkspector
+      uses: umbrelladocs/action-linkspector@v1
+      with:
+        github_token: ${{ secrets.github_token }}
+        reporter: github-pr-review
+        fail_on_error: true
+
+inputs:
+  rust_nightly:
+    description: "Rust nightly toolchain version"
+    required: false
+    default: "nightly"
