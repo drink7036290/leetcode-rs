@@ -1,3 +1,3 @@
 use cache_util::*;
 
-define_benchmark!(two_hashmaps);
+define_benchmark!(q146_lru_cache, two_hashmaps);

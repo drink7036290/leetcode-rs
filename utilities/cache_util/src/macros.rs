@@ -29,18 +29,18 @@ macro_rules! bench_lru_cache {
 #[macro_export]
 // Define the custom macro using paste for identifier concatenation
 macro_rules! define_benchmark {
-    ($postfix:ident) => {
+    ($crate_path:path, $postfix:ident) => {
         ::paste::paste! {
             use criterion::{criterion_group, criterion_main};
 
             // Generate the module path based on the postfix
-            use q146_lru_cache::[<impl_ $postfix>]::LRUCache;
+            use $crate_path::[<impl_ $postfix>]::LRUCache;
 
             // Generate a unique benchmark function name
-            bench_lru_cache!([<q146_lru_cache _ bench_ $postfix>], LRUCache);
+            bench_lru_cache!([<$crate_path _ bench_ $postfix>], LRUCache);
 
             // Collect the benchmark function into the group
-            criterion_group!(benches, [<q146_lru_cache _ bench_ $postfix>]);
+            criterion_group!(benches, [<$crate_path _ bench_ $postfix>]);
             criterion_main!(benches);
         }
     };
