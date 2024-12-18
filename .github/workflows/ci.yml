@@ -22,8 +22,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Discover subcrates
-        id: discover_subcrates
+      - name: Discover benches
+        id: discover
         run: |
           set -euo pipefail
 
@@ -40,22 +40,32 @@ jobs:
           # Output the JSON array to GitHub Actions output
           echo "subcrates=$SUBCRATES_JSON" >> "$GITHUB_OUTPUT"
 
-      - name: Discover benches
-        id: discover_benches
-        run: |
-          BENCHES=$(cargo bench -- --list --format terse | grep q146 || true)
-          # Remove the trailing ": benchmark"
-          BENCHES_CLEANED=$(echo "$BENCHES" | sed 's/: benchmark$//')
+          SUBCRATES_FOR_BENCHES=$(echo "$SUBCRATES" | grep q146 || true)
 
-          # Convert each line into a JSON string and then wrap them into a JSON array
-          BENCHES_JSON=$(echo "$BENCHES_CLEANED" | jq -R . | jq -s . | jq -c .)
+          # Build a JSON array of objects
+          # Each object: { "subcrate": "xxx", "bench": "yyy" }
+          # For each subcrate, we look under benches/ for *.rs files
+          JSON='['
+          first=true
+          for crate in $SUBCRATES_FOR_BENCHES; do
+            BENCH_FILES=$(find "implementations/$crate/benches" -maxdepth 1 -name '*.rs' -printf '%f\n' 2>/dev/null || true)
+            for bf in $BENCH_FILES; do
+              bench_name="${bf%.rs}" # remove .rs extension
+              if [ "$first" = true ]; then
+                first=false
+              else
+                JSON="$JSON,"
+              fi
+              JSON="$JSON{\"subcrate\":\"$crate\",\"bench\":\"$bench_name\"}"
+            done
+          done
+          JSON="$JSON]"
 
-          # Output the JSON array to GitHub Actions output
-          echo "benches=$BENCHES_JSON" >> "$GITHUB_OUTPUT"
+          echo "benches=$JSON" >> "$GITHUB_OUTPUT"
 
     outputs:
-      benches: ${{ steps.discover_benches.outputs.benches }}
-      subcrates: ${{ steps.discover_subcrates.outputs.subcrates }}
+      benches: ${{ steps.discover.outputs.benches }}
+      subcrates: ${{ steps.discover.outputs.subcrates }}
 
   bench:
     needs: define-matrix
