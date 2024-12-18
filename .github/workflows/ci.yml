@@ -22,15 +22,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust ${{ env.rust_nightly }}
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: ${{ env.rust_nightly }}
-
       - name: Discover subcrates
         id: discover_subcrates
         run: |
           set -euo pipefail
+
+          # We'll find all sub-crates, then find *.rs files under each sub-crate's benches/ directory.
+          # We assume structure like: implementations/SUBCRATE/benches/BENCH.rs
+          # Adjust globbing if needed.
 
           # Find all sub crates under implementations
           SUBCRATES=$(find implementations -mindepth 1 -maxdepth 1 -type d -printf '%f\n' || true)
@@ -44,8 +43,6 @@ jobs:
       - name: Discover benches
         id: discover_benches
         run: |
-          set -euo pipefail
-
           BENCHES=$(cargo bench -- --list --format terse | grep q146 || true)
           # Remove the trailing ": benchmark"
           BENCHES_CLEANED=$(echo "$BENCHES" | sed 's/: benchmark$//')
