@@ -3,16 +3,18 @@ name: "Basic Checks"
 runs:
   using: "composite"
   steps:
-    - run: start=$(date +%s)
+    - name: Record start time
+      run: echo "START=$(date +%s)" >> $GITHUB_ENV
       shell: bash
 
     # 1. Check out repository
     - uses: actions/checkout@v4
 
-    - run: |
-        end=$(date +%s)
-        echo "Time taken: $((end-start)) seconds"
-        start=$end
+    - name: Calculate elapsed after checkout
+      run: |
+        END=$(date +%s)
+        echo "Checkout took: $((END - START)) seconds"
+        echo "START=$END" >> $GITHUB_ENV
       shell: bash
 
     # 2. Set up Rust nightly toolchain
@@ -22,30 +24,31 @@ runs:
         toolchain: ${{ inputs.rust_nightly }}
         components: clippy, rustfmt
 
-    - run: |
-        end=$(date +%s)
-        echo "Time taken: $((end-start)) seconds"
-        start=$end
-      shell: bash
-
-    - name:
-        Install cargo-deny; No cargo deny init since deny.toml already exists
+    - name: Calculate elapsed after Rust installation
       run: |
-        cargo install --locked cargo-deny
+        END=$(date +%s)
+        echo "Rust install took: $((END - START)) seconds"
+        echo "START=$END" >> $GITHUB_ENV
       shell: bash
 
-    - run: |
-        end=$(date +%s)
-        echo "Time taken: $((end-start)) seconds"
-        start=$end
+    - name: Install cargo-deny
+      run: cargo install --locked cargo-deny
+      shell: bash
+
+    - name: Elapsed after cargo-deny install
+      run: |
+        END=$(date +%s)
+        echo "Cargo-deny install took: $((END - START)) seconds"
+        echo "START=$END" >> $GITHUB_ENV
       shell: bash
 
     - uses: Swatinem/rust-cache@v2
 
-    - run: |
-        end=$(date +%s)
-        echo "Time taken: $((end-start)) seconds"
-        start=$end
+    - name: Elapsed after rust-cache
+      run: |
+        END=$(date +%s)
+        echo "rust-cache step took: $((END - START)) seconds"
+        echo "START=$END" >> $GITHUB_ENV
       shell: bash
 
     # 3. Set up env for markdownlint
@@ -54,35 +57,38 @@ runs:
       with:
         node-version: "latest"
 
-    - run: |
-        end=$(date +%s)
-        echo "Time taken: $((end-start)) seconds"
-        start=$end
+    - name: Elapsed after Node.js setup
+      run: |
+        END=$(date +%s)
+        echo "Node.js setup took: $((END - START)) seconds"
+        echo "START=$END" >> $GITHUB_ENV
       shell: bash
 
     - name: Install markdownlint-cli
       run: npm install -g markdownlint-cli
       shell: bash
 
-    - run: |
-        end=$(date +%s)
-        echo "Time taken: $((end-start)) seconds"
-        start=$end
+    - name: Elapsed after markdownlint-cli install
+      run: |
+        END=$(date +%s)
+        echo "markdownlint-cli install took: $((END - START)) seconds"
+        echo "START=$END" >> $GITHUB_ENV
       shell: bash
 
     # 4. Run pre-commit hooks on all files
     - name: Run pre-commit
       run: |
-        time python3 -m venv venv
-        time source venv/bin/activate
-        time pip install pre-commit
-        time pre-commit run --all-files
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install pre-commit
+        pre-commit run --all-files
       shell: bash
 
-    - run: |
-        end=$(date +%s)
-        echo "Time taken: $((end-start)) seconds"
-        start=$end
+    - name: Elapsed after pre-commit
+      run: |
+        END=$(date +%s)
+        echo "pre-commit took: $((END - START)) seconds"
+        echo "START=$END" >> $GITHUB_ENV
       shell: bash
 
     # 5. Run linkspector
@@ -91,10 +97,11 @@ runs:
       with:
         reporter: github-pr-review
 
-    - run: |
-        end=$(date +%s)
-        echo "Time taken: $((end-start)) seconds"
-        start=$end
+    - name: Elapsed after linkspector
+      run: |
+        END=$(date +%s)
+        echo "linkspector took: $((END - START)) seconds"
+        # No need to reset START here unless needed
       shell: bash
 
 inputs:
