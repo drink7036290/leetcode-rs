@@ -289,6 +289,7 @@ jobs:
   basics:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/basics
         with:
           rust_nightly: ${{ env.rust_nightly }}
