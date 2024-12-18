@@ -13,13 +13,23 @@ runs:
         toolchain: ${{ inputs.rust_nightly }}
         components: clippy, rustfmt
 
+    - name: Install cargo-deny
+      run: |
+        cargo install --locked cargo-deny
+        cargo deny init
+      shell: bash
+
     - uses: Swatinem/rust-cache@v2
 
-    # 3. Set up Node.js for markdownlint
+    # 3. Set up env for markdownlint
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: "latest"
+
+    - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+      shell: bash
 
     # 4. Run pre-commit hooks on all files
     - name: Run pre-commit

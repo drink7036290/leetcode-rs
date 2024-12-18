@@ -3,6 +3,17 @@ name: PR Checks
 on:
   pull_request:
 
+concurrency:
+  group:
+    ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  rust_nightly: nightly-2024-12-02
+
 jobs:
   basics:
     runs-on: ubuntu-latest
@@ -10,4 +21,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/basics
         with:
-          rust_nightly: nightly-2024-12-02
+          rust_nightly: ${{ env.rust_nightly }}
