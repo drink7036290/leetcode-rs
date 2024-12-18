@@ -13,14 +13,11 @@ pub static OPERATIONS: Lazy<Vec<CacheOperation>> = Lazy::new(|| {
         .collect::<Vec<CacheOperation>>()
 });
 
-pub static CAPACITY: Lazy<usize> =
-    Lazy::new(|| StdRng::seed_from_u64(SEED).gen_range(capacity_range()));
-
 #[macro_export]
 macro_rules! bench_lru_cache {
     ($bench_name:ident, $cache_type:ty) => {
         fn $bench_name(c: &mut ::criterion::Criterion) {
-            let capacity = *$crate::modules::bench_common::CAPACITY;
+            let capacity = *cache_util::CAPACITY;
             c.bench_function(stringify!($bench_name), |b| {
                 b.iter(|| {
                     let mut cache: $cache_type =

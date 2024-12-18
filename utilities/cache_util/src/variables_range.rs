@@ -1,3 +1,6 @@
+use once_cell::sync::Lazy;
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 use std::ops::RangeInclusive;
 
 pub const SEED: u64 = 12345; // Use a fixed seed for reproducibility
@@ -17,3 +20,6 @@ pub fn value_range() -> RangeInclusive<i32> {
 pub fn capacity_range() -> RangeInclusive<usize> {
     1..=10_000
 }
+
+pub static CAPACITY: Lazy<usize> =
+    Lazy::new(|| StdRng::seed_from_u64(SEED).gen_range(capacity_range()));
