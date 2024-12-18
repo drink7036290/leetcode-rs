@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
+# [Run before committing via hook]
+# ln -s ../../utilities/pre-commit .git/hooks/
+
 set -e  # Exit on error
 
-rustfmt --edition 2024 $(git ls-files '*.rs')
+rustfmt --check --edition 2024 $(git ls-files '*.rs')
 
 cargo clippy --all --tests --all-features --no-deps
 
