@@ -1,7 +1,10 @@
 use crate::variables_range::*;
+use crate::{DefaultOperationsRangeProvider, OperationsRangeProvider};
+use once_cell::sync::Lazy;
 use proptest::prelude::*;
-use rand::Rng;
 use rand::distributions::{Distribution, Standard};
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 
 // Define an enum to represent cache operations
 #[derive(Debug, Clone)]
@@ -40,3 +43,12 @@ impl Arbitrary for CacheOperation {
         prop_oneof![put_strategy, get_strategy].boxed()
     }
 }
+
+pub static OPERATIONS: Lazy<Vec<CacheOperation>> = Lazy::new(|| {
+    let mut rng = StdRng::seed_from_u64(SEED);
+
+    DefaultOperationsRangeProvider
+        .operations_range()
+        .map(|_| rng.r#gen())
+        .collect::<Vec<CacheOperation>>()
+});

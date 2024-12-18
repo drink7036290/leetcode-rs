@@ -1,18 +1,3 @@
-use once_cell::sync::Lazy;
-use rand::rngs::StdRng;
-use rand::{Rng, SeedableRng};
-
-use cache_util::*;
-
-pub static OPERATIONS: Lazy<Vec<CacheOperation>> = Lazy::new(|| {
-    let mut rng = StdRng::seed_from_u64(SEED);
-
-    DefaultOperationsRangeProvider
-        .operations_range()
-        .map(|_| rng.r#gen())
-        .collect::<Vec<CacheOperation>>()
-});
-
 #[macro_export]
 macro_rules! bench_lru_cache {
     ($bench_name:ident, $cache_type:ty) => {
@@ -22,7 +7,7 @@ macro_rules! bench_lru_cache {
                 b.iter(|| {
                     let mut cache: $cache_type =
                         <$cache_type>::new(::criterion::black_box(capacity as i32));
-                    for op in $crate::modules::bench_common::OPERATIONS.iter() {
+                    for op in cache_util::OPERATIONS.iter() {
                         match op {
                             cache_util::CacheOperation::Put { key, value } => {
                                 cache.put(
