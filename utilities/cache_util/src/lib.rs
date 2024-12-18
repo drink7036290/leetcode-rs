@@ -1,5 +1,6 @@
 mod cache_operation;
 mod heap_node;
+pub mod macros;
 mod operations_range;
 mod variables_range;
 
