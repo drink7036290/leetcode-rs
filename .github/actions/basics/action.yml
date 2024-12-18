@@ -31,8 +31,11 @@ runs:
         echo "START=$END" >> $GITHUB_ENV
       shell: bash
 
-    - name: Install cargo-deny
-      run: cargo install --locked cargo-deny
+    - name: Install cargo-deny precompiled binary
+      run: |
+        curl -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.16.3/cargo-deny-0.16.3-x86_64-unknown-linux-musl.tar.gz | tar xz
+        chmod +x cargo-deny
+        mv cargo-deny ~/.cargo/bin/
       shell: bash
 
     - name: Elapsed after cargo-deny install
