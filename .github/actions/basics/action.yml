@@ -21,16 +21,13 @@ runs:
       with:
         node-version: "latest"
 
-    - name: Install pre-commit
+    # 4. Run pre-commit hooks on all files
+    - name: Run pre-commit
       run: |
         python3 -m venv venv
         source venv/bin/activate
         pip install pre-commit
-      shell: bash
-
-    # 4. Run pre-commit hooks on all files
-    - name: Run pre-commit
-      run: pre-commit run --all-files
+        pre-commit run --all-files
       shell: bash
 
     # 5. Run linkspector
