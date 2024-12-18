@@ -1,11 +1,11 @@
-use crate::heap_node::HeapNode;
+use crate::heap_node::FreqAwareHeapNode;
 use std::collections::HashMap;
 
 use std::cmp::Ordering;
 use std::time::SystemTime;
 
 pub struct LFUCache {
-    arr: Vec<HeapNode>,
+    arr: Vec<FreqAwareHeapNode>,
     map: HashMap<i32, usize>, // key -> vec's index
 }
 
@@ -14,21 +14,21 @@ pub struct LFUCache {
  * If you need a mutable reference, change it to `&mut self` instead.
  */
 impl LFUCache {
-    fn get_node(&self, index: usize) -> Option<&HeapNode> {
+    fn get_node(&self, index: usize) -> Option<&FreqAwareHeapNode> {
         match index.cmp(&self.arr.len()) {
             Ordering::Less => Some(&self.arr[index]),
             _ => None,
         }
     }
 
-    fn get_node_mut(&mut self, index: usize) -> Option<&mut HeapNode> {
+    fn get_node_mut(&mut self, index: usize) -> Option<&mut FreqAwareHeapNode> {
         match index.cmp(&self.arr.len()) {
             Ordering::Less => Some(&mut self.arr[index]),
             _ => None,
         }
     }
 
-    fn get_parent(&self, index: usize) -> Option<(usize, &HeapNode)> {
+    fn get_parent(&self, index: usize) -> Option<(usize, &FreqAwareHeapNode)> {
         match index {
             0 => None,
             _ => {
@@ -38,13 +38,13 @@ impl LFUCache {
         }
     }
 
-    fn get_left_child(&self, index: usize) -> Option<(usize, &HeapNode)> {
+    fn get_left_child(&self, index: usize) -> Option<(usize, &FreqAwareHeapNode)> {
         let left_child_index = (index << 1) + 1;
         self.get_node(left_child_index)
             .map(|node| (left_child_index, node))
     }
 
-    fn get_right_child(&self, index: usize) -> Option<(usize, &HeapNode)> {
+    fn get_right_child(&self, index: usize) -> Option<(usize, &FreqAwareHeapNode)> {
         let right_child_index = (index << 1) + 2;
         self.get_node(right_child_index)
             .map(|node| (right_child_index, node))
@@ -66,12 +66,12 @@ impl LFUCache {
 
     fn swap_nodes(&mut self, index1: usize, index2: usize) {
         let key1 = match self.get_node(index1) {
-            Some(v) => v.key,
+            Some(v) => v.node.key,
             None => panic!("Could not find node with vec index {} ", index1),
         };
 
         let key2 = match self.get_node(index2) {
-            Some(v) => v.key,
+            Some(v) => v.node.key,
             None => panic!("Could not find node with vec index {} ", index2),
         };
 
@@ -93,7 +93,7 @@ impl LFUCache {
             }
 
             // swap with parent
-            self.swap_nodes_with_key(node.key, index, parent_node.key, parent_index);
+            self.swap_nodes_with_key(node.node.key, index, parent_node.node.key, parent_index);
             index = parent_index;
         }
     }
@@ -118,9 +118,9 @@ impl LFUCache {
 
                     // swap with right child
                     self.swap_nodes_with_key(
-                        node.key,
+                        node.node.key,
                         index,
-                        right_child_node.key,
+                        right_child_node.node.key,
                         right_child_index,
                     );
                     index = right_child_index;
@@ -135,7 +135,7 @@ impl LFUCache {
             }
 
             // swap with left child
-            self.swap_nodes_with_key(node.key, index, left_child_node.key, left_child_index);
+            self.swap_nodes_with_key(node.node.key, index, left_child_node.node.key, left_child_index);
             index = left_child_index;
         }
     }
@@ -162,9 +162,9 @@ impl LFUCache {
         };
 
         node.freq += 1;
-        node.last_access = SystemTime::now();
+        node.node.last_access = SystemTime::now();
 
-        let val = node.val;
+        let val = node.node.val;
         self.sift_down(index);
         val
     }
@@ -177,12 +177,12 @@ impl LFUCache {
                     let last_index = self.arr.len() - 1;
 
                     self.swap_nodes(0, last_index);
-                    self.map.remove(&self.arr[last_index].key);
+                    self.map.remove(&self.arr[last_index].node.key);
                     self.arr.pop();
                     self.sift_down(0);
                 }
 
-                self.arr.push(HeapNode::new(key, value));
+                self.arr.push(FreqAwareHeapNode::new(key, value));
                 self.map.insert(key, self.arr.len() - 1);
                 self.sift_up(self.arr.len() - 1);
 
@@ -198,10 +198,10 @@ impl LFUCache {
             ),
         };
 
-        node.val = value;
+        node.node.val = value;
 
         node.freq += 1;
-        node.last_access = SystemTime::now();
+        node.node.last_access = SystemTime::now();
 
         self.sift_down(index);
     }

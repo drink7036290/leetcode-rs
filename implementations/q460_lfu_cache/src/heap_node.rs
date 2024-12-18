@@ -1,40 +1,36 @@
 use std::cmp::Ordering;
-use std::time::SystemTime;
+use cache_util::HeapNode;
 
-pub struct HeapNode {
-    pub key: i32,
-    pub val: i32,
+pub struct FreqAwareHeapNode {
     pub freq: i32,
-    pub last_access: SystemTime,
+    pub node: HeapNode,
 }
 
-impl HeapNode {
+impl FreqAwareHeapNode {
     pub fn new(key: i32, val: i32) -> Self {
-        HeapNode {
-            key,
-            val,
+        FreqAwareHeapNode {
             freq: 1,
-            last_access: SystemTime::now(),
+            node: HeapNode::new(key, val),
         }
     }
 }
 
-impl PartialEq for HeapNode {
+impl PartialEq for FreqAwareHeapNode {
     fn eq(&self, other: &Self) -> bool {
-        self.freq == other.freq && self.last_access == other.last_access
+        self.freq == other.freq && self.node == other.node
     }
 }
-impl Eq for HeapNode {}
+impl Eq for FreqAwareHeapNode {}
 
-impl PartialOrd for HeapNode {
+impl PartialOrd for FreqAwareHeapNode {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
-impl Ord for HeapNode {
+impl Ord for FreqAwareHeapNode {
     fn cmp(&self, other: &Self) -> Ordering {
         match self.freq.cmp(&other.freq) {
-            Ordering::Equal => self.last_access.cmp(&other.last_access), // min heap
+            Ordering::Equal => self.node.cmp(&other.node), // min heap
             ord => ord,
         }
     }

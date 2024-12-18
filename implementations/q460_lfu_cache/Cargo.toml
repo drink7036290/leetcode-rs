@@ -7,6 +7,7 @@ license = "MIT"
 [dependencies]
 priority-queue = "2.1.1"
 intrusive-collections = "0.9.7"
+cache_util = { path = "../../utilities/cache_util" }
 
 [dev-dependencies]
 rstest = "0.23.0"

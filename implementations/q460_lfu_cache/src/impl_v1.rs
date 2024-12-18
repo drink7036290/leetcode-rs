@@ -2,10 +2,10 @@ use priority_queue::PriorityQueue;
 use std::cmp::Reverse;
 use std::time::SystemTime;
 
-use crate::heap_node::HeapNode;
+use crate::heap_node::FreqAwareHeapNode;
 
 pub struct LFUCache {
-    pq: PriorityQueue<i32, Reverse<HeapNode>>,
+    pq: PriorityQueue<i32, Reverse<FreqAwareHeapNode>>,
     capacity: usize,
 }
 
@@ -24,11 +24,11 @@ impl LFUCache {
     pub fn get(&mut self, key: i32) -> i32 {
         match self.pq.get(&key) {
             Some((_, rev_node)) => {
-                let val = rev_node.0.val;
+                let val = rev_node.0.node.val;
 
                 self.pq.change_priority_by(&key, |p| {
                     p.0.freq += 1;
-                    p.0.last_access = SystemTime::now();
+                    p.0.node.last_access = SystemTime::now();
                 });
 
                 val
@@ -42,9 +42,9 @@ impl LFUCache {
             Some((_, _)) => {
                 self.pq.change_priority_by(&key, |p| {
                     p.0.freq += 1;
-                    p.0.last_access = SystemTime::now();
+                    p.0.node.last_access = SystemTime::now();
 
-                    p.0.val = value;
+                    p.0.node.val = value;
                 });
             }
             None => {
@@ -52,7 +52,7 @@ impl LFUCache {
                     self.pq.pop();
                 }
 
-                self.pq.push(key, Reverse(HeapNode::new(key, value)));
+                self.pq.push(key, Reverse(FreqAwareHeapNode::new(key, value)));
             }
         }
     }
