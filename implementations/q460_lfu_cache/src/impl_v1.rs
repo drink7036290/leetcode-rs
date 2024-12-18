@@ -52,7 +52,8 @@ impl LFUCache {
                     self.pq.pop();
                 }
 
-                self.pq.push(key, Reverse(FreqAwareHeapNode::new(key, value)));
+                self.pq
+                    .push(key, Reverse(FreqAwareHeapNode::new(key, value)));
             }
         }
     }

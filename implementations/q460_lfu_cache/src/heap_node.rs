@@ -1,5 +1,5 @@
-use std::cmp::Ordering;
 use cache_util::HeapNode;
+use std::cmp::Ordering;
 
 pub struct FreqAwareHeapNode {
     pub freq: i32,

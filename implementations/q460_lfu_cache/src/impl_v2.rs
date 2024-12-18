@@ -135,7 +135,12 @@ impl LFUCache {
             }
 
             // swap with left child
-            self.swap_nodes_with_key(node.node.key, index, left_child_node.node.key, left_child_index);
+            self.swap_nodes_with_key(
+                node.node.key,
+                index,
+                left_child_node.node.key,
+                left_child_index,
+            );
             index = left_child_index;
         }
     }
