@@ -29,10 +29,10 @@ fn operation_sequence_strategy() -> impl Strategy<Value = Vec<CacheOperation>> {
 }
 
 fn test_lfu_cache_with_operations(capacity: i32, operations: Vec<CacheOperation>) {
-    use q460_lfu_cache::impl_v1::LFUCache as LFUCache_v1;
-    use q460_lfu_cache::impl_v2::LFUCache as LFUCache_v2;
-    use q460_lfu_cache::impl_v3::LFUCache as LFUCache_v3;
-    use q460_lfu_cache::impl_v4::LFUCache as LFUCache_v4;
+    use q460_lfu_cache::intrusive_two_hashmaps::LFUCache as LFUCache_v4;
+    use q460_lfu_cache::priority_queue::LFUCache as LFUCache_v1;
+    use q460_lfu_cache::two_hashmaps::LFUCache as LFUCache_v3;
+    use q460_lfu_cache::vec_hashmap::LFUCache as LFUCache_v2;
 
     let mut cache_v1 = LFUCache_v1::new(capacity);
     let mut cache_v2 = LFUCache_v2::new(capacity);

@@ -18,6 +18,7 @@ macro_rules! bench_cache {
                             cache_util::CacheOperation::Get { key } => {
                                 ::criterion::black_box(cache.get(::criterion::black_box(*key)));
                             }
+                            _ => unreachable!(),
                         }
                     }
                 })
@@ -29,15 +30,17 @@ macro_rules! bench_cache {
 #[macro_export]
 // Define the custom macro using paste for identifier concatenation
 macro_rules! define_benchmark {
-    ($crate_path:path, $postfix:ident) => {
+    ($crate_name:ident, $impl:ident, $cache_type:ty) => {
         ::paste::paste! {
             use criterion::{criterion_group, criterion_main};
 
+            use $crate_name::$impl::$cache_type as CACHE;
+
             // Generate a unique benchmark function name
-            bench_cache!([<$crate_path _ bench_ $postfix>], CACHE);
+            bench_cache!([<$crate_name _bench_ $impl>], CACHE);
 
             // Collect the benchmark function into the group
-            criterion_group!(benches, [<$crate_path _ bench_ $postfix>]);
+            criterion_group!(benches, [<$crate_name _bench_ $impl>]);
             criterion_main!(benches);
         }
     };

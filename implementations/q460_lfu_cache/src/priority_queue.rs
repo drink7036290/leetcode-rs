@@ -2,7 +2,7 @@ use priority_queue::PriorityQueue;
 use std::cmp::Reverse;
 use std::time::SystemTime;
 
-use crate::heap_node::FreqAwareHeapNode;
+use crate::FreqAwareHeapNode;
 
 pub struct LFUCache {
     pq: PriorityQueue<i32, Reverse<FreqAwareHeapNode>>,

@@ -1,4 +1,4 @@
-use crate::heap_node::FreqAwareHeapNode;
+use crate::FreqAwareHeapNode;
 use std::collections::HashMap;
 
 use std::cmp::Ordering;

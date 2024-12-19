@@ -40,7 +40,7 @@ jobs:
           # Output the JSON array to GitHub Actions output
           echo "subcrates=$SUBCRATES_JSON" >> "$GITHUB_OUTPUT"
 
-          SUBCRATES_FOR_BENCHES=$(echo "$SUBCRATES" | grep q146 || true)
+          SUBCRATES_FOR_BENCHES=$(echo "$SUBCRATES" || true)
 
           # Build a JSON array of objects
           # Each object: { "subcrate": "xxx", "bench": "yyy" }

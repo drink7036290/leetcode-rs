@@ -1,9 +1,9 @@
 use rstest::rstest;
 
-use q460_lfu_cache::impl_v1::LFUCache as LFUCache_v1;
-use q460_lfu_cache::impl_v2::LFUCache as LFUCache_v2;
-use q460_lfu_cache::impl_v3::LFUCache as LFUCache_v3;
-use q460_lfu_cache::impl_v4::LFUCache as LFUCache_v4;
+use q460_lfu_cache::intrusive_two_hashmaps::LFUCache as LFUCache_v4;
+use q460_lfu_cache::priority_queue::LFUCache as LFUCache_v1;
+use q460_lfu_cache::two_hashmaps::LFUCache as LFUCache_v3;
+use q460_lfu_cache::vec_hashmap::LFUCache as LFUCache_v2;
 
 #[rstest]
 #[case(vec!["LFUCache", "put", "put", "get", "put", "get", "get", "put", "get", "get", "get"], 

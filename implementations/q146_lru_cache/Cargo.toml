@@ -19,7 +19,7 @@ paste = "1.0.15"
 [lib]
 # specially for Criterion
 # without this option, cargo bench will fail by commands like this:
-#    cargo bench -p q146_lru_cache -- --verbose  # error: Unrecognized option: 'verbose'
+#    cargo bench -p SUBCRATE -- --verbose  # error: Unrecognized option: 'verbose'
 bench = false
 # https://bheisler.github.io/criterion.rs/book/faq.html#cargo-bench-gives-unrecognized-option-errors-for-valid-command-line-options
 

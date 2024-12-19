@@ -17,6 +17,25 @@ rand = "0.8.5"
 criterion = "0.5.1"
 paste = "1.0.15"
 
+[lib]
+# specially for Criterion
+# without this option, cargo bench will fail by commands like this:
+#    cargo bench -p SUBCRATE -- --verbose  # error: Unrecognized option: 'verbose'
+bench = false
+# https://bheisler.github.io/criterion.rs/book/faq.html#cargo-bench-gives-unrecognized-option-errors-for-valid-command-line-options
+
 [[bench]]
-name = "bench_all_impl"
-harness = false         # Disables the default Rust benchmarking harness so that Criterion can use its own.
+name = "bench_priority_queue"
+harness = false               # Disables the default Rust benchmarking harness so that Criterion can use its own.
+
+[[bench]]
+name = "bench_vec_hashmap"
+harness = false            # Disables the default Rust benchmarking harness so that Criterion can use its own.
+
+[[bench]]
+name = "bench_two_hashmaps"
+harness = false             # Disables the default Rust benchmarking harness so that Criterion can use its own.
+
+[[bench]]
+name = "bench_intrusive_two_hashmaps"
+harness = false                       # Disables the default Rust benchmarking harness so that Criterion can use its own.

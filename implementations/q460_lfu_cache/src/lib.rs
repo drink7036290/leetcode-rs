@@ -1,5 +1,7 @@
-pub mod heap_node;
-pub mod impl_v1;
-pub mod impl_v2;
-pub mod impl_v3;
-pub mod impl_v4;
+mod freq_aware_heap_node;
+pub mod intrusive_two_hashmaps;
+pub mod priority_queue;
+pub mod two_hashmaps;
+pub mod vec_hashmap;
+
+pub use freq_aware_heap_node::*;
