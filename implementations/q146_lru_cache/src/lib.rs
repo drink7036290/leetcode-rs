@@ -1,4 +1,4 @@
-pub mod impl_intrusive_two_hashmaps;
-pub mod impl_priority_queue;
-pub mod impl_two_hashmaps;
-pub mod impl_vec_hashmap;
+pub mod intrusive_two_hashmaps;
+pub mod priority_queue;
+pub mod two_hashmaps;
+pub mod vec_hashmap;

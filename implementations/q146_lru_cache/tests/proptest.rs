@@ -9,10 +9,10 @@ fn operation_sequence_strategy() -> impl Strategy<Value = Vec<CacheOperation>> {
 }
 
 fn test_lru_cache_with_operations(capacity: usize, operations: Vec<CacheOperation>) {
-    use q146_lru_cache::impl_intrusive_two_hashmaps::LRUCache as LRUCache_intrusive_two_hashmaps;
-    use q146_lru_cache::impl_priority_queue::LRUCache as LRUCache_priority_queue;
-    use q146_lru_cache::impl_two_hashmaps::LRUCache as LRUCache_two_hashmaps;
-    use q146_lru_cache::impl_vec_hashmap::LRUCache as LRUCache_vec_hashmap;
+    use q146_lru_cache::intrusive_two_hashmaps::LRUCache as LRUCache_intrusive_two_hashmaps;
+    use q146_lru_cache::priority_queue::LRUCache as LRUCache_priority_queue;
+    use q146_lru_cache::two_hashmaps::LRUCache as LRUCache_two_hashmaps;
+    use q146_lru_cache::vec_hashmap::LRUCache as LRUCache_vec_hashmap;
 
     let mut cache_priority_queue = LRUCache_priority_queue::new(capacity as i32);
     let mut cache_vec_hashmap = LRUCache_vec_hashmap::new(capacity as i32);

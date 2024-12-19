@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! bench_lru_cache {
+macro_rules! bench_cache {
     ($bench_name:ident, $cache_type:ty) => {
         fn $bench_name(c: &mut ::criterion::Criterion) {
             let capacity = *cache_util::CAPACITY;
@@ -33,11 +33,8 @@ macro_rules! define_benchmark {
         ::paste::paste! {
             use criterion::{criterion_group, criterion_main};
 
-            // Generate the module path based on the postfix
-            use $crate_path::[<impl_ $postfix>]::LRUCache;
-
             // Generate a unique benchmark function name
-            bench_lru_cache!([<$crate_path _ bench_ $postfix>], LRUCache);
+            bench_cache!([<$crate_path _ bench_ $postfix>], CACHE);
 
             // Collect the benchmark function into the group
             criterion_group!(benches, [<$crate_path _ bench_ $postfix>]);
