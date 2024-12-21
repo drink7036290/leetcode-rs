@@ -16,7 +16,7 @@ impl LFUCache {
         Self {
             cache: GenericCache::new(
                 EvictionPolicyVHM::<KeyAwareHeapNode<LFUHeapNode<LRUHeapNode>>>::new(),
-                HashMapStorage::default(),
+                HashMapStorage::new(capacity as usize),
                 capacity as usize,
             ),
         }

@@ -15,7 +15,7 @@ impl LRUCache {
         Self {
             cache: GenericCache::new(
                 EvictionPolicyPQ::<LRUHeapNode>::default(),
-                HashMapStorage::default(),
+                HashMapStorage::new(capacity as usize),
                 capacity as usize,
             ),
         }
