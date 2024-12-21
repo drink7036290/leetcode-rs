@@ -1,10 +1,17 @@
-mod cache_operation;
-mod heap_node;
-pub mod macros;
-mod operations_range;
-mod variables_range;
+mod cache;
+pub use cache::*;
 
-pub use cache_operation::*;
+mod generic_cache;
+pub use generic_cache::*;
+
+mod eviction_policy;
+pub use eviction_policy::*;
+
+mod cache_storage;
+pub use cache_storage::*;
+
+mod heap_node;
 pub use heap_node::*;
-pub use operations_range::*;
-pub use variables_range::*;
+
+mod mock;
+pub use mock::*;

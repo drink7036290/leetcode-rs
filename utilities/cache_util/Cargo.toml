@@ -5,6 +5,7 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
+priority-queue = "2.1.1"
 rand = "0.8.5"
 proptest = "1.5.0"
 mockall = "0.13.1"
