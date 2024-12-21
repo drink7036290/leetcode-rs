@@ -1,5 +1,5 @@
-use crate::variables_range::*;
-use crate::{DefaultOperationsRangeProvider, OperationsRangeProvider};
+use super::variables_range::*;
+use super::{DefaultOperationsRangeProvider, OperationsRangeProvider};
 use once_cell::sync::Lazy;
 use proptest::prelude::*;
 use rand::distributions::{Distribution, Standard};

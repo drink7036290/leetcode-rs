@@ -1,12 +1,9 @@
-use priority_queue::PriorityQueue;
-use std::cmp::Reverse;
-use std::time::SystemTime;
-
-use crate::FreqAwareHeapNode;
+use cache_util::HashMapStorage;
+use cache_util::{Cache, GenericCache};
+use cache_util::{EvictionPolicyPQ, LFUHeapNode, LRUHeapNode};
 
 pub struct LFUCache {
-    pq: PriorityQueue<i32, Reverse<FreqAwareHeapNode>>,
-    capacity: usize,
+    cache: GenericCache<EvictionPolicyPQ<LFUHeapNode<LRUHeapNode>>, HashMapStorage>,
 }
 
 /**
@@ -16,46 +13,20 @@ pub struct LFUCache {
 impl LFUCache {
     pub fn new(capacity: i32) -> Self {
         Self {
-            pq: PriorityQueue::new(),
-            capacity: capacity as usize,
-        }
-    }
-
-    pub fn get(&mut self, key: i32) -> i32 {
-        match self.pq.get(&key) {
-            Some((_, rev_node)) => {
-                let val = rev_node.0.node.val;
-
-                self.pq.change_priority_by(&key, |p| {
-                    p.0.freq += 1;
-                    p.0.node.last_access = SystemTime::now();
-                });
-
-                val
-            }
-            None => -1,
+            cache: GenericCache::new(
+                EvictionPolicyPQ::<LFUHeapNode<LRUHeapNode>>::default(),
+                HashMapStorage::default(),
+                capacity as usize,
+            ),
         }
     }
 
     pub fn put(&mut self, key: i32, value: i32) {
-        match self.pq.get(&key) {
-            Some((_, _)) => {
-                self.pq.change_priority_by(&key, |p| {
-                    p.0.freq += 1;
-                    p.0.node.last_access = SystemTime::now();
+        self.cache.put(key, value);
+    }
 
-                    p.0.node.val = value;
-                });
-            }
-            None => {
-                if self.pq.len() == self.capacity {
-                    self.pq.pop();
-                }
-
-                self.pq
-                    .push(key, Reverse(FreqAwareHeapNode::new(key, value)));
-            }
-        }
+    pub fn get(&mut self, key: i32) -> i32 {
+        self.cache.get(&key).unwrap_or(-1)
     }
 }
 

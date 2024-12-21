@@ -1,12 +1,9 @@
-use priority_queue::PriorityQueue;
-use std::cmp::Reverse;
-use std::time::SystemTime;
-
-use cache_util::HeapNode;
+use cache_util::HashMapStorage;
+use cache_util::{Cache, GenericCache};
+use cache_util::{EvictionPolicyPQ, LRUHeapNode};
 
 pub struct LRUCache {
-    pq: PriorityQueue<i32, Reverse<HeapNode>>,
-    capacity: usize,
+    cache: GenericCache<EvictionPolicyPQ<LRUHeapNode>, HashMapStorage>,
 }
 
 /**
@@ -16,43 +13,20 @@ pub struct LRUCache {
 impl LRUCache {
     pub fn new(capacity: i32) -> Self {
         Self {
-            pq: PriorityQueue::new(),
-            capacity: capacity as usize,
-        }
-    }
-
-    pub fn get(&mut self, key: i32) -> i32 {
-        match self.pq.get(&key) {
-            Some((_, rev_node)) => {
-                let val = rev_node.0.val;
-
-                self.pq.change_priority_by(&key, |p| {
-                    p.0.last_access = SystemTime::now();
-                });
-
-                val
-            }
-            None => -1,
+            cache: GenericCache::new(
+                EvictionPolicyPQ::<LRUHeapNode>::default(),
+                HashMapStorage::default(),
+                capacity as usize,
+            ),
         }
     }
 
     pub fn put(&mut self, key: i32, value: i32) {
-        match self.pq.get(&key) {
-            Some((_, _)) => {
-                self.pq.change_priority_by(&key, |p| {
-                    p.0.last_access = SystemTime::now();
+        self.cache.put(key, value);
+    }
 
-                    p.0.val = value;
-                });
-            }
-            None => {
-                if self.pq.len() == self.capacity {
-                    self.pq.pop();
-                }
-
-                self.pq.push(key, Reverse(HeapNode::new(key, value)));
-            }
-        }
+    pub fn get(&mut self, key: i32) -> i32 {
+        self.cache.get(&key).unwrap_or(-1)
     }
 }
 
