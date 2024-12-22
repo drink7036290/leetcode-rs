@@ -9,3 +9,6 @@ pub use lfu::*;
 
 mod key_aware;
 pub use key_aware::*;
+
+mod value_aware;
+pub use value_aware::*;

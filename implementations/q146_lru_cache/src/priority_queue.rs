@@ -1,13 +1,13 @@
 use cache_util::HashMapStorage;
 use cache_util::{Cache, EvictionCache, GenericCache};
-use cache_util::{EvictionPolicyPQ, LRUHeapNode};
+use cache_util::{EvictionPolicyPQ, LRUHeapNode, ValueAwareHeapNode};
 
 pub struct LRUCache {
     cache: GenericCache<EvictionPolicyPQ<LRUHeapNode>, HashMapStorage>,
 }
 
 pub struct LRUEvictionCache {
-    cache: EvictionCache<EvictionPolicyPQ<LRUHeapNode>>,
+    cache: EvictionCache<EvictionPolicyPQ<ValueAwareHeapNode<LRUHeapNode>>>,
 }
 
 /**
@@ -38,7 +38,7 @@ impl LRUEvictionCache {
     pub fn new(capacity: i32) -> Self {
         Self {
             cache: EvictionCache::new(
-                EvictionPolicyPQ::<LRUHeapNode>::default(),
+                EvictionPolicyPQ::<ValueAwareHeapNode<LRUHeapNode>>::default(),
                 capacity as usize,
             ),
         }

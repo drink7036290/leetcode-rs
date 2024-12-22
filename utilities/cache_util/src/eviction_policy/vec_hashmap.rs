@@ -1,13 +1,10 @@
-use super::EvictionPolicy;
+use super::{/* EvictionAsStoragePolicy, */ EvictionPolicy};
 use crate::HeapNodeTrait;
 
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
-pub struct EvictionPolicyVHM<H>
-where
-    H: HeapNodeTrait<Key = i32>,
-{
+pub struct EvictionPolicyVHM<H> {
     map: HashMap<i32, usize>, // key -> vec's index
     arr: Vec<H>,
 }
@@ -154,7 +151,7 @@ where
 
 impl<H> EvictionPolicy for EvictionPolicyVHM<H>
 where
-    H: HeapNodeTrait<Key = i32>,
+    H: HeapNodeTrait<Key = i32, Value = ()>,
 {
     fn on_get(&mut self, key: &i32) {
         if let Some(index) = self.map.get(key) {
@@ -169,7 +166,7 @@ where
         if let Some(index) = self.map.get(&key) {
             self.sift_down(*index);
         } else {
-            self.arr.push(HeapNodeTrait::new(key));
+            self.arr.push(HeapNodeTrait::new(key, ()));
             self.map.insert(key, self.arr.len() - 1);
             self.sift_up(self.arr.len() - 1);
         }
@@ -190,3 +187,38 @@ where
         result
     }
 }
+/*
+impl<H> EvictionAsStoragePolicy for EvictionPolicyVHM<H>
+where
+    H: HeapNodeTrait<Key = i32>,
+{
+    fn on_put(&mut self, key: i32) {
+        EvictionPolicy::on_put(self, key);
+    }
+
+    fn evict(&mut self) -> Option<i32> {
+        EvictionPolicy::evict(self)
+    }
+
+    fn get(&mut self, key: &i32) -> Option<i32> {
+        if let Some(index) = self.map.get(key) {
+            if index.cmp(&self.arr.len()).is_lt() {
+                self.arr[*index].on_access();
+                self.sift_down(*index);
+            }
+
+            Some(42) // hack for bench only, test will fail
+        } else {
+            None
+        }
+    }
+
+    fn len(&self) -> usize {
+        self.map.len()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.map.is_empty()
+    }
+}
+ */

@@ -1,7 +1,8 @@
 use rstest::rstest;
 
 use q146_lru_cache::intrusive_two_hashmaps::LRUCache as LRUCache_intrusive_two_hashmaps;
-use q146_lru_cache::priority_queue::LRUCache as LRUCache_priority_queue;
+//use q146_lru_cache::priority_queue::LRUCache as LRUCache_priority_queue;
+use q146_lru_cache::priority_queue::LRUEvictionCache as LRUCache_priority_queue;
 use q146_lru_cache::two_hashmaps::LRUCache as LRUCache_two_hashmaps;
 use q146_lru_cache::vec_hashmap::LRUCache as LRUCache_vec_hashmap;
 

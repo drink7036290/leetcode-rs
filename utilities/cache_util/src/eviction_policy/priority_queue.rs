@@ -33,7 +33,7 @@ where
 
 impl<H> EvictionPolicy for EvictionPolicyPQ<H>
 where
-    H: HeapNodeTrait<Key = ()>,
+    H: HeapNodeTrait<Key = (), Value = ()>,
 {
     fn on_get(&mut self, key: &i32) {
         self.pq.change_priority_by(key, |p| {
@@ -45,7 +45,7 @@ where
         if !self.pq.change_priority_by(&key, |p| {
             p.0.on_access();
         }) {
-            self.pq.push(key, Reverse(HeapNodeTrait::new(())));
+            self.pq.push(key, Reverse(HeapNodeTrait::new((), ())));
         }
     }
 
@@ -56,23 +56,27 @@ where
 
 impl<H> EvictionAsStoragePolicy for EvictionPolicyPQ<H>
 where
-    H: HeapNodeTrait<Key = ()>,
+    H: HeapNodeTrait<Key = (), Value = i32>,
 {
-    fn on_put(&mut self, key: i32) {
-        EvictionPolicy::on_put(self, key);
-    }
-
     fn evict(&mut self) -> Option<i32> {
-        EvictionPolicy::evict(self)
+        self.pq.pop().map(|(key, _)| key)
     }
 
     fn get(&mut self, key: &i32) -> Option<i32> {
-        if self.pq.change_priority_by(key, |p| {
+        let mut result = None;
+        self.pq.change_priority_by(key, |p| {
+            p.0.on_access();
+            result = Some(*p.0.value());
+        });
+
+        result
+    }
+
+    fn put(&mut self, key: i32, value: i32) {
+        if !self.pq.change_priority_by(&key, |p| {
             p.0.on_access();
         }) {
-            Some(42) // hack for bench only, test will fail
-        } else {
-            None
+            self.pq.push(key, Reverse(HeapNodeTrait::new((), value)));
         }
     }
 

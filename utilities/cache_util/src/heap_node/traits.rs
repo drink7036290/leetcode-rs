@@ -1,8 +1,11 @@
 pub trait HeapNodeTrait: Ord {
     type Key;
+    type Value;
 
-    fn new(key: Self::Key) -> Self;
+    fn new(key: Self::Key, value: Self::Value) -> Self;
+
     fn key(&self) -> &Self::Key;
+    fn value(&self) -> &Self::Value;
 
     fn on_access(&mut self);
 }

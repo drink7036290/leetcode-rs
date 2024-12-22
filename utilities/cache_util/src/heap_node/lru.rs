@@ -9,7 +9,7 @@ pub struct LRUHeapNode {
 
 impl Default for LRUHeapNode {
     fn default() -> Self {
-        Self::new(())
+        Self::new((), ())
     }
 }
 
@@ -33,13 +33,18 @@ impl Ord for LRUHeapNode {
 
 impl HeapNodeTrait for LRUHeapNode {
     type Key = ();
+    type Value = ();
 
-    fn new(_key: Self::Key) -> Self {
+    fn new(_key: Self::Key, _value: Self::Value) -> Self {
         Self {
             last_access: SystemTime::now(),
         }
     }
+
     fn key(&self) -> &() {
+        &()
+    }
+    fn value(&self) -> &() {
         &()
     }
 
