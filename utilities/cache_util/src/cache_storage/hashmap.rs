@@ -1,11 +1,11 @@
 use super::CacheStorage;
-use std::collections::HashMap;
+use ahash::AHashMap;
 
-pub struct HashMapStorage(HashMap<i32, i32>);
+pub struct HashMapStorage(AHashMap<i32, i32>);
 
 impl HashMapStorage {
     pub fn new(capacity: usize) -> Self {
-        Self(HashMap::with_capacity(capacity))
+        Self(AHashMap::with_capacity(capacity))
     }
 }
 
