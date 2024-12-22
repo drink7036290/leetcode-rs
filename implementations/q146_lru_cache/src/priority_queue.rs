@@ -1,9 +1,13 @@
 use cache_util::HashMapStorage;
-use cache_util::{Cache, GenericCache};
+use cache_util::{Cache, EvictionCache, GenericCache};
 use cache_util::{EvictionPolicyPQ, LRUHeapNode};
 
 pub struct LRUCache {
     cache: GenericCache<EvictionPolicyPQ<LRUHeapNode>, HashMapStorage>,
+}
+
+pub struct LRUEvictionCache {
+    cache: EvictionCache<EvictionPolicyPQ<LRUHeapNode>>,
 }
 
 /**
@@ -21,6 +25,24 @@ impl LRUCache {
         }
     }
 
+    pub fn put(&mut self, key: i32, value: i32) {
+        self.cache.put(key, value);
+    }
+
+    pub fn get(&mut self, key: i32) -> i32 {
+        self.cache.get(&key).unwrap_or(-1)
+    }
+}
+
+impl LRUEvictionCache {
+    pub fn new(capacity: i32) -> Self {
+        Self {
+            cache: EvictionCache::new(
+                EvictionPolicyPQ::<LRUHeapNode>::default(),
+                capacity as usize,
+            ),
+        }
+    }
     pub fn put(&mut self, key: i32, value: i32) {
         self.cache.put(key, value);
     }
