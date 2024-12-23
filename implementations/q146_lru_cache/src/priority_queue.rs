@@ -6,6 +6,8 @@ pub struct LRUCache {
     cache: GenericCache<EvictionPolicyPQ<LRUHeapNode>, HashMapStorage>,
 }
 
+// https://bheisler.github.io/criterion.rs/book/cargoX_criterion/external_tools.html
+
 pub struct LRUEvictionCache {
     cache: EvictionCache<EvictionPolicyPQ<ValueAwareHeapNode<LRUHeapNode>>>,
 }

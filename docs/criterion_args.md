@@ -16,7 +16,8 @@
   cargo bench -p SUB_CRATE_USING_CRITERION -- -h
   ```
 
-- `--message-format=json` from [Criterion.rs Documentation](https://bheisler.github.io/criterion.rs/book/cargo_criterion/external_tools.html)
+- `--message-format=json` from
+  [Criterion.rs Documentation](https://bheislerX.github.io/criterion.rs/book/cargo_criterion/external_tools.html)
 
   ```console
   cargo bench -p SUB_CRATE_USING_CRITERION -- --message-format=json
