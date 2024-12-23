@@ -33,13 +33,11 @@ runs:
 
     # Install cargo-deny precompiled binary
     - name: Install cargo-deny precompiled binary
-      run: |
-        mkdir -p cargo-deny-dir
-        curl -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.16.3/cargo-deny-0.16.3-x86_64-unknown-linux-musl.tar.gz | tar xz --strip-components=1 -C cargo-deny-dir
-        chmod +x cargo-deny-dir/cargo-deny
-        mv cargo-deny-dir/cargo-deny ~/.cargo/bin/
-        rm -rf cargo-deny-dir
-      shell: bash
+      uses: ./.github/actions/install-from-tarball
+      with:
+        url: "https://github.com/EmbarkStudios/cargo-deny/releases/download/0.16.3/cargo-deny-0.16.3-x86_64-unknown-linux-musl.tar.gz"
+        executable: "cargo-deny"
+        target_path: "~/.cargo/bin"
 
     - name: Elapsed after cargo-deny install
       run: |
@@ -50,11 +48,11 @@ runs:
 
     # Install lychee
     - name: Install lychee
-      run: |
-        curl -L https://github.com/lycheeverse/lychee/releases/download/lychee-v0.18.0/lychee-x86_64-unknown-linux-musl.tar.gz | tar xz
-        chmod +x lychee/lychee
-        mv lychee/lychee ~/.cargo/bin/
-      shell: bash
+      uses: ./.github/actions/install-from-tarball
+      with:
+        url: "https://github.com/lycheeverse/lychee/releases/download/lychee-v0.18.0/lychee-x86_64-unknown-linux-musl.tar.gz"
+        executable: "lychee"
+        target_path: "~/.cargo/bin"
 
     - name: Elapsed after lychee install
       run: |
