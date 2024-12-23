@@ -1,9 +1,5 @@
 name: "Basic Checks"
 
-permissions:
-  contents: read
-  pull-requests: write
-
 runs:
   using: "composite"
   steps:
@@ -104,7 +100,9 @@ runs:
     - name: Run linkspector
       uses: umbrelladocs/action-linkspector@v1
       with:
+        github_token: ${{ secrets.github_token }}
         reporter: github-pr-review
+        fail_on_error: true
 
     - name: Elapsed after linkspector
       run: |
