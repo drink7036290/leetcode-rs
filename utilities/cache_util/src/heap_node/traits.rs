@@ -6,6 +6,7 @@ pub trait HeapNodeTrait: Ord {
 
     fn key(&self) -> &Self::Key;
     fn value(&self) -> &Self::Value;
+    fn set_value(&mut self, value: Self::Value);
 
     fn on_access(&mut self);
 }

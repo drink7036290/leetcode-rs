@@ -44,6 +44,9 @@ impl<H: HeapNodeTrait> HeapNodeTrait for LFUHeapNode<H> {
     fn value(&self) -> &Self::Value {
         self.node.value()
     }
+    fn set_value(&mut self, value: Self::Value) {
+        self.node.set_value(value);
+    }
 
     fn on_access(&mut self) {
         self.node.on_access();

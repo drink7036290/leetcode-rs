@@ -56,6 +56,9 @@ where
     fn value(&self) -> &Self::Value {
         &self.value
     }
+    fn set_value(&mut self, value: Self::Value) {
+        self.value = value;
+    }
 
     fn on_access(&mut self) {
         self.node.on_access();

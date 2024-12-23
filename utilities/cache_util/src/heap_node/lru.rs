@@ -47,6 +47,7 @@ impl HeapNodeTrait for LRUHeapNode {
     fn value(&self) -> &() {
         &()
     }
+    fn set_value(&mut self, _value: Self::Value) {}
 
     fn on_access(&mut self) {
         self.last_access = SystemTime::now();

@@ -1,15 +1,15 @@
 use cache_util::HashMapStorage;
-use cache_util::{Cache /* , EvictionCache */, GenericCache};
-use cache_util::{EvictionPolicyVHM, KeyAwareHeapNode, LRUHeapNode};
+use cache_util::{Cache, EvictionCache, GenericCache};
+use cache_util::{EvictionPolicyVHM, KeyAwareHeapNode, LRUHeapNode, ValueAwareHeapNode};
 
 pub struct LRUCache {
     cache: GenericCache<EvictionPolicyVHM<KeyAwareHeapNode<LRUHeapNode>>, HashMapStorage>,
 }
-/*
+
 pub struct LRUEvictionCache {
-    cache: EvictionCache<EvictionPolicyVHM<KeyAwareHeapNode<LRUHeapNode>>>,
+    cache: EvictionCache<EvictionPolicyVHM<ValueAwareHeapNode<KeyAwareHeapNode<LRUHeapNode>>>>,
 }
- */
+
 /**
  * `&self` means the method takes an immutable reference.
  * If you need a mutable reference, change it to `&mut self` instead.
@@ -33,12 +33,12 @@ impl LRUCache {
         self.cache.get(&key).unwrap_or(-1)
     }
 }
-/*
+
 impl LRUEvictionCache {
     pub fn new(capacity: i32) -> Self {
         Self {
             cache: EvictionCache::new(
-                EvictionPolicyVHM::<KeyAwareHeapNode<LRUHeapNode>>::new(),
+                EvictionPolicyVHM::<ValueAwareHeapNode<KeyAwareHeapNode<LRUHeapNode>>>::new(),
                 capacity as usize,
             ),
         }
@@ -51,7 +51,7 @@ impl LRUEvictionCache {
         self.cache.get(&key).unwrap_or(-1)
     }
 }
- */
+
 /*
  * Your LRUCache object will be instantiated and called as such:
  * let obj = LRUCache::new(capacity);

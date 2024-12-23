@@ -1,4 +1,4 @@
-use super::{/* EvictionAsStoragePolicy, */ EvictionPolicy};
+use super::{EvictionAsStoragePolicy, EvictionPolicy};
 use crate::HeapNodeTrait;
 
 use std::cmp::Ordering;
@@ -187,29 +187,48 @@ where
         result
     }
 }
-/*
+
 impl<H> EvictionAsStoragePolicy for EvictionPolicyVHM<H>
 where
-    H: HeapNodeTrait<Key = i32>,
+    H: HeapNodeTrait<Key = i32, Value = i32>,
 {
-    fn on_put(&mut self, key: i32) {
-        EvictionPolicy::on_put(self, key);
-    }
-
     fn evict(&mut self) -> Option<i32> {
-        EvictionPolicy::evict(self)
+        if self.arr.is_empty() {
+            return None;
+        }
+
+        let last_index = self.arr.len() - 1;
+
+        self.swap_nodes(0, last_index);
+        self.map.remove(self.arr[last_index].key());
+        let result = self.arr.pop().map(|node| *node.key());
+        self.sift_down(0);
+
+        result
     }
 
     fn get(&mut self, key: &i32) -> Option<i32> {
-        if let Some(index) = self.map.get(key) {
+        if let Some(index) = self.map.get(key).cloned() {
             if index.cmp(&self.arr.len()).is_lt() {
-                self.arr[*index].on_access();
-                self.sift_down(*index);
-            }
+                let val = *self.arr[index].value();
+                self.arr[index].on_access();
+                self.sift_down(index);
 
-            Some(42) // hack for bench only, test will fail
+                return Some(val);
+            }
+        }
+
+        None
+    }
+
+    fn put(&mut self, key: i32, value: i32) {
+        if let Some(index) = self.map.get(&key).cloned() {
+            self.arr[index].set_value(value);
+            self.sift_down(index);
         } else {
-            None
+            self.arr.push(HeapNodeTrait::new(key, value));
+            self.map.insert(key, self.arr.len() - 1);
+            self.sift_up(self.arr.len() - 1);
         }
     }
 
@@ -221,4 +240,3 @@ where
         self.map.is_empty()
     }
 }
- */

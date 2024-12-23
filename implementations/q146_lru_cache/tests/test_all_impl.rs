@@ -1,10 +1,11 @@
 use rstest::rstest;
 
 use q146_lru_cache::intrusive_two_hashmaps::LRUCache as LRUCache_intrusive_two_hashmaps;
-//use q146_lru_cache::priority_queue::LRUCache as LRUCache_priority_queue;
-use q146_lru_cache::priority_queue::LRUEvictionCache as LRUCache_priority_queue;
+use q146_lru_cache::priority_queue::LRUCache as LRUCache_priority_queue;
+use q146_lru_cache::priority_queue::LRUEvictionCache as LRUEvictionCache_priority_queue;
 use q146_lru_cache::two_hashmaps::LRUCache as LRUCache_two_hashmaps;
 use q146_lru_cache::vec_hashmap::LRUCache as LRUCache_vec_hashmap;
+use q146_lru_cache::vec_hashmap::LRUEvictionCache as LRUEvictionCache_vec_hashmap;
 
 #[rstest]
 #[case(vec!["LRUCache", "put", "put", "get", "put", "get", "put", "get", "get", "get"], 
@@ -24,7 +25,9 @@ fn test_all_impl(
     assert_eq!(expected_list[0], None);
 
     let mut cache_priority_queue = LRUCache_priority_queue::new(args_list[0][0]);
+    let mut cache_priority_queue_eviction = LRUEvictionCache_priority_queue::new(args_list[0][0]);
     let mut cache_vec_hashmap = LRUCache_vec_hashmap::new(args_list[0][0]);
+    let mut cache_vec_hashmap_eviction = LRUEvictionCache_vec_hashmap::new(args_list[0][0]);
     let mut cache_two_hashmaps = LRUCache_two_hashmaps::new(args_list[0][0]);
     let mut cache_intrusive_two_hashmaps = LRUCache_intrusive_two_hashmaps::new(args_list[0][0]);
 
@@ -39,7 +42,9 @@ fn test_all_impl(
                     let key = args[0];
 
                     assert_eq!(cache_priority_queue.get(key), v);
+                    assert_eq!(cache_priority_queue_eviction.get(key), v);
                     assert_eq!(cache_vec_hashmap.get(key), v);
+                    assert_eq!(cache_vec_hashmap_eviction.get(key), v);
                     assert_eq!(cache_two_hashmaps.get(key), v);
                     assert_eq!(cache_intrusive_two_hashmaps.get(key), v);
                 }
@@ -57,7 +62,9 @@ fn test_all_impl(
                     let value = args[1];
 
                     cache_priority_queue.put(key, value);
+                    cache_priority_queue_eviction.put(key, value);
                     cache_vec_hashmap.put(key, value);
+                    cache_vec_hashmap_eviction.put(key, value);
                     cache_two_hashmaps.put(key, value);
                     cache_intrusive_two_hashmaps.put(key, value);
                 }
