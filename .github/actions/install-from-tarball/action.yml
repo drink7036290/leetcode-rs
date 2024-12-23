@@ -1,0 +1,74 @@
+name: "Install From Tarball"
+description: "Installs a single binary from a .tar.gz URL"
+runs:
+  using: "composite"
+  steps:
+    - name: Check if already installed
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        if [ -f "${{ inputs.target_path }}/${{ inputs.executable }}" ]; then
+          echo "Skipping installation. '${{ inputs.target_path }}/${{ inputs.executable }}' already exists."
+          exit 0
+        fi
+
+    - name: Install single binary from tarball
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        # Gather inputs
+        TARBALL_URL="${{ inputs.url }}"
+        EXECUTABLE_NAME="${{ inputs.executable }}"
+        TARGET_DIR="${{ inputs.target_path }}"
+
+        # 1) Make sure target dir exists
+        mkdir -p "$TARGET_DIR"
+
+        # 2) Download tarball to a temp file
+        TARBALL="$(mktemp)"
+        curl -s -L "$TARBALL_URL" -o "$TARBALL"
+
+        # 3) Find the path inside the tarball that ends with $EXECUTABLE_NAME
+        #    If the user typed an exact name like "lychee" or "mytool", the grep might match top-level or subfolder entries.
+        FILE_PATH_IN_TAR="$(tar tzf "$TARBALL" | grep -E "(^|/)$EXECUTABLE_NAME\$")"
+
+        # 4) Extract the file
+        #    - If top-level, FILE_PATH_IN_TAR == "$EXECUTABLE_NAME"
+        #    - Otherwise, there's a parent folder to strip (e.g. "somefolder/$EXECUTABLE_NAME")
+        if [[ "$FILE_PATH_IN_TAR" == "$EXECUTABLE_NAME" ]]; then
+          # Case A: top-level => directly extract
+          tar xzf "$TARBALL" -C "$TARGET_DIR" "$EXECUTABLE_NAME"
+        else
+          # Case B: there's a directory prefix => strip one component
+          tar xzf "$TARBALL" --strip-components=1 -C "$TARGET_DIR" "$FILE_PATH_IN_TAR"
+        fi
+
+        # 5) Mark the binary executable
+        chmod +x "$TARGET_DIR/$EXECUTABLE_NAME"
+
+        # 6) Clean up temp
+        rm -f "$TARBALL"
+
+        # 7) Print results
+        echo "Installed $EXECUTABLE_NAME to $TARGET_DIR/$EXECUTABLE_NAME"
+
+        # 8) Set action output
+        echo "installed_path=$TARGET_DIR/$EXECUTABLE_NAME" >> "$GITHUB_OUTPUT"
+
+outputs:
+  installed_path:
+    description: "The full path to the installed binary"
+
+inputs:
+  url:
+    description: "Tarball URL to download"
+    required: true
+  executable:
+    description: "The name of the executable within the tarball (e.g. 'lychee')"
+    required: true
+  target_path:
+    description: "Destination directory for the installed binary"
+    required: false
+    default: "$CARGO_HOME/bin"
