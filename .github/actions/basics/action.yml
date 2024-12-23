@@ -3,84 +3,47 @@ name: "Basic Checks"
 runs:
   using: "composite"
   steps:
-    - name: Record start time
-      run: echo "START=$(date +%s)" >> $GITHUB_ENV
-      shell: bash
-
-    # 1. Check out repository
     - uses: actions/checkout@v4
 
-    - name: Calculate elapsed after checkout
-      run: |
-        END=$(date +%s)
-        echo "Checkout took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
-
-    # 2. Set up Rust nightly toolchain
     - name: Install Rust nightly
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: ${{ inputs.rust_nightly }}
         components: clippy, rustfmt
 
-    - name: Calculate elapsed after Rust installation
-      run: |
-        END=$(date +%s)
-        echo "Rust install took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
+    - name: Install cargo-deny
+      uses: ./.github/actions/install-from-tarball
+      with:
+        url: "https://github.com/EmbarkStudios/cargo-deny/releases/download/0.16.3/cargo-deny-0.16.3-x86_64-unknown-linux-musl.tar.gz"
+        executable: "cargo-deny"
+        target_path: "$CARGO_HOME/bin"
 
-    - name: Install cargo-deny precompiled binary
-      run: |
-        mkdir -p cargo-deny-dir
-        curl -L https://github.com/EmbarkStudios/cargo-deny/releases/download/0.16.3/cargo-deny-0.16.3-x86_64-unknown-linux-musl.tar.gz | tar xz --strip-components=1 -C cargo-deny-dir
-        chmod +x cargo-deny-dir/cargo-deny
-        mv cargo-deny-dir/cargo-deny ~/.cargo/bin/
-        rm -rf cargo-deny-dir
-      shell: bash
-
-    - name: Elapsed after cargo-deny install
-      run: |
-        END=$(date +%s)
-        echo "Cargo-deny install took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
+    - name: Install lychee
+      uses: ./.github/actions/install-from-tarball
+      with:
+        url: "https://github.com/lycheeverse/lychee/releases/download/lychee-v0.18.0/lychee-x86_64-unknown-linux-musl.tar.gz"
+        executable: "lychee"
+        target_path: "$CARGO_HOME/bin"
 
     - uses: Swatinem/rust-cache@v2
 
-    - name: Elapsed after rust-cache
-      run: |
-        END=$(date +%s)
-        echo "rust-cache step took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
-
-    # 3. Set up env for markdownlint
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: "latest"
 
-    - name: Elapsed after Node.js setup
-      run: |
-        END=$(date +%s)
-        echo "Node.js setup took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
-
     - name: Install markdownlint-cli
       run: npm install -g markdownlint-cli
       shell: bash
 
-    - name: Elapsed after markdownlint-cli install
-      run: |
-        END=$(date +%s)
-        echo "markdownlint-cli install took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
+    - name: Restore lychee cache
+      id: restore-cache
+      uses: actions/cache/restore@v4
+      with:
+        path: .lycheecache
+        key: cache-lychee-${{ github.sha }}
+        restore-keys: cache-lychee-
 
-    # 4. Run pre-commit hooks on all files
     - name: Run pre-commit
       run: |
         python3 -m venv venv
@@ -89,25 +52,12 @@ runs:
         pre-commit run --all-files
       shell: bash
 
-    - name: Elapsed after pre-commit
-      run: |
-        END=$(date +%s)
-        echo "pre-commit took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
-
-    # 5. Run linkspector
-    - name: Run linkspector
-      uses: umbrelladocs/action-linkspector@v1
+    - name: Save lychee cache
+      uses: actions/cache/save@v4
+      if: always()
       with:
-        reporter: github-pr-review
-
-    - name: Elapsed after linkspector
-      run: |
-        END=$(date +%s)
-        echo "linkspector took: $((END - START)) seconds"
-        # No need to reset START here unless needed
-      shell: bash
+        path: .lycheecache
+        key: ${{ steps.restore-cache.outputs.cache-primary-key }}
 
 inputs:
   rust_nightly:

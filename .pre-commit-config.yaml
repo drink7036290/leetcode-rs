@@ -44,3 +44,10 @@ repos:
         args: ["--ignore", "node_modules"]
         pass_filenames: true
         files: \.md$
+
+      # Link validation
+      - id: lychee
+        name: Lychee
+        language: system
+        entry: lychee
+        args: ["--no-progress", "--cache"]
