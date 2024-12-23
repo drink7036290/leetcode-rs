@@ -7,7 +7,7 @@ runs:
       run: echo "START=$(date +%s)" >> $GITHUB_ENV
       shell: bash
 
-    # 1. Check out repository
+    # Check out repository
     - uses: actions/checkout@v4
 
     - name: Calculate elapsed after checkout
@@ -17,7 +17,7 @@ runs:
         echo "START=$END" >> $GITHUB_ENV
       shell: bash
 
-    # 2. Set up Rust nightly toolchain
+    # Set up Rust nightly toolchain
     - name: Install Rust nightly
       uses: dtolnay/rust-toolchain@stable
       with:
@@ -31,6 +31,7 @@ runs:
         echo "START=$END" >> $GITHUB_ENV
       shell: bash
 
+    # Install cargo-deny precompiled binary
     - name: Install cargo-deny precompiled binary
       run: |
         mkdir -p cargo-deny-dir
@@ -47,15 +48,22 @@ runs:
         echo "START=$END" >> $GITHUB_ENV
       shell: bash
 
+    # Install lychee
     - name: Install lychee
       run: |
-        mkdir -p lychee-dir
-        curl -L https://github.com/lycheeverse/lychee/releases/download/lychee-v0.18.0/lychee-x86_64-unknown-linux-musl.tar.gz | tar xz --strip-components=1 -C lychee-dir
-        chmod +x lychee-dir/lychee
-        mv lychee-dir/lychee ~/.cargo/bin/
-        rm -rf lychee-dir
+        curl -L https://github.com/lycheeverse/lychee/releases/download/lychee-v0.18.0/lychee-x86_64-unknown-linux-musl.tar.gz | tar xz
+        chmod +x lychee/lychee
+        mv lychee/lychee ~/.cargo/bin/
       shell: bash
 
+    - name: Elapsed after lychee install
+      run: |
+        END=$(date +%s)
+        echo "lychee install took: $((END - START)) seconds"
+        echo "START=$END" >> $GITHUB_ENV
+      shell: bash
+
+    # Swatinem/rust-cache
     - uses: Swatinem/rust-cache@v2
 
     - name: Elapsed after rust-cache
@@ -65,7 +73,7 @@ runs:
         echo "START=$END" >> $GITHUB_ENV
       shell: bash
 
-    # 3. Set up env for markdownlint
+    # Set up env for markdownlint
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
@@ -89,7 +97,16 @@ runs:
         echo "START=$END" >> $GITHUB_ENV
       shell: bash
 
-    # 4. Run pre-commit hooks on all files
+    # Restore lychee cache
+    - name: Restore lychee cache
+      id: restore-cache
+      uses: actions/cache/restore@v4
+      with:
+        path: .lycheecache
+        key: cache-lychee-${{ github.sha }}
+        restore-keys: cache-lychee-
+
+    # Run pre-commit hooks on all files
     - name: Run pre-commit
       run: |
         python3 -m venv venv
@@ -102,6 +119,21 @@ runs:
       run: |
         END=$(date +%s)
         echo "pre-commit took: $((END - START)) seconds"
+        echo "START=$END" >> $GITHUB_ENV
+      shell: bash
+
+    # Save lychee cache
+    - name: Save lychee cache
+      uses: actions/cache/save@v4
+      if: always()
+      with:
+        path: .lycheecache
+        key: ${{ steps.restore-cache.outputs.cache-primary-key }}
+
+    - name: Elapsed after lychee save
+      run: |
+        END=$(date +%s)
+        echo "lychee save took: $((END - START)) seconds"
         echo "START=$END" >> $GITHUB_ENV
       shell: bash
 
