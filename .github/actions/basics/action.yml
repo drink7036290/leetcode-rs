@@ -3,50 +3,21 @@ name: "Basic Checks"
 runs:
   using: "composite"
   steps:
-    - name: Record start time
-      run: echo "START=$(date +%s)" >> $GITHUB_ENV
-      shell: bash
-
-    # Check out repository
     - uses: actions/checkout@v4
 
-    - name: Calculate elapsed after checkout
-      run: |
-        END=$(date +%s)
-        echo "Checkout took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
-
-    # Set up Rust nightly toolchain
     - name: Install Rust nightly
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: ${{ inputs.rust_nightly }}
         components: clippy, rustfmt
 
-    - name: Calculate elapsed after Rust installation
-      run: |
-        END=$(date +%s)
-        echo "Rust install took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
-
-    # Install cargo-deny precompiled binary
-    - name: Install cargo-deny precompiled binary
+    - name: Install cargo-deny
       uses: ./.github/actions/install-from-tarball
       with:
         url: "https://github.com/EmbarkStudios/cargo-deny/releases/download/0.16.3/cargo-deny-0.16.3-x86_64-unknown-linux-musl.tar.gz"
         executable: "cargo-deny"
         target_path: "~/.cargo/bin"
 
-    - name: Elapsed after cargo-deny install
-      run: |
-        END=$(date +%s)
-        echo "Cargo-deny install took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
-
-    # Install lychee
     - name: Install lychee
       uses: ./.github/actions/install-from-tarball
       with:
@@ -54,48 +25,21 @@ runs:
         executable: "lychee"
         target_path: "~/.cargo/bin"
 
-    - name: Elapsed after lychee install
-      run: |
-        END=$(date +%s)
-        echo "lychee install took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
+    - name: Add cargo bin to PATH
       shell: bash
+      run: echo "${HOME}/.cargo/bin" >> $GITHUB_PATH
 
-    # Swatinem/rust-cache
     - uses: Swatinem/rust-cache@v2
 
-    - name: Elapsed after rust-cache
-      run: |
-        END=$(date +%s)
-        echo "rust-cache step took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
-
-    # Set up env for markdownlint
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: "latest"
 
-    - name: Elapsed after Node.js setup
-      run: |
-        END=$(date +%s)
-        echo "Node.js setup took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
-
     - name: Install markdownlint-cli
       run: npm install -g markdownlint-cli
       shell: bash
 
-    - name: Elapsed after markdownlint-cli install
-      run: |
-        END=$(date +%s)
-        echo "markdownlint-cli install took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
-
-    # Restore lychee cache
     - name: Restore lychee cache
       id: restore-cache
       uses: actions/cache/restore@v4
@@ -104,7 +48,6 @@ runs:
         key: cache-lychee-${{ github.sha }}
         restore-keys: cache-lychee-
 
-    # Run pre-commit hooks on all files
     - name: Run pre-commit
       run: |
         python3 -m venv venv
@@ -113,27 +56,12 @@ runs:
         pre-commit run --all-files
       shell: bash
 
-    - name: Elapsed after pre-commit
-      run: |
-        END=$(date +%s)
-        echo "pre-commit took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
-
-    # Save lychee cache
     - name: Save lychee cache
       uses: actions/cache/save@v4
       if: always()
       with:
         path: .lycheecache
         key: ${{ steps.restore-cache.outputs.cache-primary-key }}
-
-    - name: Elapsed after lychee save
-      run: |
-        END=$(date +%s)
-        echo "lychee save took: $((END - START)) seconds"
-        echo "START=$END" >> $GITHUB_ENV
-      shell: bash
 
 inputs:
   rust_nightly:
