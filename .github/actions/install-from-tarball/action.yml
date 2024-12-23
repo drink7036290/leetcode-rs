@@ -3,6 +3,16 @@ description: "Installs a single binary from a .tar.gz URL"
 runs:
   using: "composite"
   steps:
+    - name: Check if already installed
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        if [ -f "${{ inputs.target_path }}/${{ inputs.executable }}" ]; then
+          echo "Skipping installation. '${{ inputs.target_path }}/${{ inputs.executable }}' already exists."
+          exit 0
+        fi
+
     - name: Install single binary from tarball
       shell: bash
       run: |
@@ -18,7 +28,7 @@ runs:
 
         # 2) Download tarball to a temp file
         TARBALL="$(mktemp)"
-        curl -L "$TARBALL_URL" -o "$TARBALL"
+        curl -s -L "$TARBALL_URL" -o "$TARBALL"
 
         # 3) Find the path inside the tarball that ends with $EXECUTABLE_NAME
         #    If the user typed an exact name like "lychee" or "mytool", the grep might match top-level or subfolder entries.
