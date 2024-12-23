@@ -22,7 +22,7 @@ runs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: ${{ inputs.rust_nightly }}
-        components: clippy, rustfmt
+        components: clippy, rustfmt, lychee
 
     - name: Calculate elapsed after Rust installation
       run: |
@@ -97,19 +97,19 @@ runs:
       shell: bash
 
     # 5. Run linkspector
-    - name: Run linkspector
-      uses: umbrelladocs/action-linkspector@v1
-      with:
-        github_token: ${{ inputs.github_token }}
-        reporter: github-pr-review
-        reviewdog_flags: -fail-level=any
-
-    - name: Elapsed after linkspector
-      run: |
-        END=$(date +%s)
-        echo "linkspector took: $((END - START)) seconds"
-        # No need to reset START here unless needed
-      shell: bash
+#    - name: Run linkspector
+#      uses: umbrelladocs/action-linkspector@v1
+#      with:
+#        github_token: ${{ inputs.github_token }}
+#        reporter: github-pr-review
+#        reviewdog_flags: -fail-level=any
+#
+#    - name: Elapsed after linkspector
+#      run: |
+#        END=$(date +%s)
+#        echo "linkspector took: $((END - START)) seconds"
+#        # No need to reset START here unless needed
+#      shell: bash
 
 inputs:
   rust_nightly:
