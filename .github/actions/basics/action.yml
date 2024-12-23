@@ -102,6 +102,7 @@ runs:
       with:
         github_token: ${{ inputs.github_token }}
         reporter: github-pr-review
+        reviewdog_flags: -fail-level=any
 
     - name: Elapsed after linkspector
       run: |
