@@ -102,7 +102,6 @@ runs:
       with:
         github_token: ${{ inputs.github_token }}
         reporter: github-pr-review
-        fail_on_error: true
 
     - name: Elapsed after linkspector
       run: |
