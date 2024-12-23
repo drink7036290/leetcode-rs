@@ -50,4 +50,4 @@ repos:
         name: Lychee
         language: system
         entry: lychee
-        args: ["--no-progress"]
+        args: ["--no-progress", "--cache"]
