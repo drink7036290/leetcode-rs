@@ -30,6 +30,7 @@ runs:
       run: echo "${CARGO_HOME:-$HOME/.cargo}/bin" >> "$GITHUB_PATH"
 
     - name: Print PATH
+      shell: bash
       run: echo "$PATH"
 
     - uses: Swatinem/rust-cache@v2
@@ -53,9 +54,7 @@ runs:
 
     - name: Run pre-commit
       run: |
-        python3 -m venv venv
-        source venv/bin/activate
-        pip install pre-commit
+        sudo apt update; sudo apt install pre-commit
         pre-commit run --all-files
       shell: bash
 
