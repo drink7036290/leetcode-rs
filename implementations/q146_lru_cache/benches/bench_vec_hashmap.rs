@@ -1,3 +1,19 @@
 use cache_util::*;
+use criterion::{criterion_group, criterion_main};
 
-define_benchmark!(q146_lru_cache, vec_hashmap, LRUCache);
+bench_cache!(
+    q146_lru_cache_bench_vec_hashmap,
+    q146_lru_cache::vec_hashmap::LRUCache
+);
+
+bench_cache!(
+    q146_lru_cache_bench_vec_hashmap_eviction,
+    q146_lru_cache::vec_hashmap::LRUEvictionCache
+);
+
+criterion_group!(
+    benches,
+    q146_lru_cache_bench_vec_hashmap,
+    q146_lru_cache_bench_vec_hashmap_eviction,
+);
+criterion_main!(benches);

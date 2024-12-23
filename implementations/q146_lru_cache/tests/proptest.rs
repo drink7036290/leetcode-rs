@@ -11,11 +11,15 @@ fn operation_sequence_strategy() -> impl Strategy<Value = Vec<CacheOperation>> {
 fn test_lru_cache_with_operations(capacity: usize, operations: Vec<CacheOperation>) {
     use q146_lru_cache::intrusive_two_hashmaps::LRUCache as LRUCache_intrusive_two_hashmaps;
     use q146_lru_cache::priority_queue::LRUCache as LRUCache_priority_queue;
+    use q146_lru_cache::priority_queue::LRUEvictionCache as LRUEvictionCache_priority_queue;
     use q146_lru_cache::two_hashmaps::LRUCache as LRUCache_two_hashmaps;
     use q146_lru_cache::vec_hashmap::LRUCache as LRUCache_vec_hashmap;
+    use q146_lru_cache::vec_hashmap::LRUEvictionCache as LRUEvictionCache_vec_hashmap;
 
     let mut cache_priority_queue = LRUCache_priority_queue::new(capacity as i32);
+    let mut cache_priority_queue_eviction = LRUEvictionCache_priority_queue::new(capacity as i32);
     let mut cache_vec_hashmap = LRUCache_vec_hashmap::new(capacity as i32);
+    let mut cache_vec_hashmap_eviction = LRUEvictionCache_vec_hashmap::new(capacity as i32);
     let mut cache_two_hashmaps = LRUCache_two_hashmaps::new(capacity as i32);
     let mut cache_intrusive_two_hashmaps = LRUCache_intrusive_two_hashmaps::new(capacity as i32);
 
@@ -23,20 +27,34 @@ fn test_lru_cache_with_operations(capacity: usize, operations: Vec<CacheOperatio
         match operation {
             CacheOperation::Put { key, value } => {
                 cache_priority_queue.put(key, value);
+                cache_priority_queue_eviction.put(key, value);
                 cache_vec_hashmap.put(key, value);
+                cache_vec_hashmap_eviction.put(key, value);
                 cache_two_hashmaps.put(key, value);
                 cache_intrusive_two_hashmaps.put(key, value);
             }
             CacheOperation::Get { key } => {
                 let result_priority_queue = cache_priority_queue.get(key);
+                let result_priority_queue_eviction = cache_priority_queue_eviction.get(key);
                 let result_vec_hashmap = cache_vec_hashmap.get(key);
+                let result_vec_hashmap_eviction = cache_vec_hashmap_eviction.get(key);
                 let result_two_hashmaps = cache_two_hashmaps.get(key);
                 let result_intrusive_two_hashmaps = cache_intrusive_two_hashmaps.get(key);
 
                 // Compare results
                 assert_eq!(
+                    result_priority_queue, result_priority_queue_eviction,
+                    "priority_queue and priority_queue_eviction differ on get({})",
+                    key
+                );
+                assert_eq!(
                     result_priority_queue, result_vec_hashmap,
                     "priority_queue and vec_hashmap differ on get({})",
+                    key
+                );
+                assert_eq!(
+                    result_priority_queue, result_vec_hashmap_eviction,
+                    "priority_queue and vec_hashmap_eviction differ on get({})",
                     key
                 );
                 assert_eq!(

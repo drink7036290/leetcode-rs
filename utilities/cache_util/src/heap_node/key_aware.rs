@@ -41,16 +41,23 @@ where
     H: HeapNodeTrait<Key = ()>,
 {
     type Key = i32;
+    type Value = H::Value; // pass value to inner node
 
-    fn new(key: Self::Key) -> Self {
+    fn new(key: Self::Key, value: Self::Value) -> Self {
         Self {
             key,
-            node: HeapNodeTrait::new(()),
+            node: HeapNodeTrait::new((), value),
         }
     }
 
     fn key(&self) -> &Self::Key {
         &self.key
+    }
+    fn value(&self) -> &Self::Value {
+        self.node.value()
+    }
+    fn set_value(&mut self, value: Self::Value) {
+        self.node.set_value(value);
     }
 
     fn on_access(&mut self) {

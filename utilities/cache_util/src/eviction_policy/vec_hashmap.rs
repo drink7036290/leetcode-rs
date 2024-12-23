@@ -1,13 +1,10 @@
-use super::EvictionPolicy;
+use super::{EvictionAsStoragePolicy, EvictionPolicy};
 use crate::HeapNodeTrait;
 
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
-pub struct EvictionPolicyVHM<H>
-where
-    H: HeapNodeTrait<Key = i32>,
-{
+pub struct EvictionPolicyVHM<H> {
     map: HashMap<i32, usize>, // key -> vec's index
     arr: Vec<H>,
 }
@@ -154,7 +151,7 @@ where
 
 impl<H> EvictionPolicy for EvictionPolicyVHM<H>
 where
-    H: HeapNodeTrait<Key = i32>,
+    H: HeapNodeTrait<Key = i32, Value = ()>,
 {
     fn on_get(&mut self, key: &i32) {
         if let Some(index) = self.map.get(key) {
@@ -169,7 +166,7 @@ where
         if let Some(index) = self.map.get(&key) {
             self.sift_down(*index);
         } else {
-            self.arr.push(HeapNodeTrait::new(key));
+            self.arr.push(HeapNodeTrait::new(key, ()));
             self.map.insert(key, self.arr.len() - 1);
             self.sift_up(self.arr.len() - 1);
         }
@@ -188,5 +185,58 @@ where
         self.sift_down(0);
 
         result
+    }
+}
+
+impl<H> EvictionAsStoragePolicy for EvictionPolicyVHM<H>
+where
+    H: HeapNodeTrait<Key = i32, Value = i32>,
+{
+    fn evict(&mut self) -> Option<i32> {
+        if self.arr.is_empty() {
+            return None;
+        }
+
+        let last_index = self.arr.len() - 1;
+
+        self.swap_nodes(0, last_index);
+        self.map.remove(self.arr[last_index].key());
+        let result = self.arr.pop().map(|node| *node.key());
+        self.sift_down(0);
+
+        result
+    }
+
+    fn get(&mut self, key: &i32) -> Option<i32> {
+        if let Some(index) = self.map.get(key).cloned() {
+            if index.cmp(&self.arr.len()).is_lt() {
+                let val = *self.arr[index].value();
+                self.arr[index].on_access();
+                self.sift_down(index);
+
+                return Some(val);
+            }
+        }
+
+        None
+    }
+
+    fn put(&mut self, key: i32, value: i32) {
+        if let Some(index) = self.map.get(&key).cloned() {
+            self.arr[index].set_value(value);
+            self.sift_down(index);
+        } else {
+            self.arr.push(HeapNodeTrait::new(key, value));
+            self.map.insert(key, self.arr.len() - 1);
+            self.sift_up(self.arr.len() - 1);
+        }
+    }
+
+    fn len(&self) -> usize {
+        self.map.len()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.map.is_empty()
     }
 }

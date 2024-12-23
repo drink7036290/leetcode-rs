@@ -1,9 +1,13 @@
 use cache_util::HashMapStorage;
-use cache_util::{Cache, GenericCache};
-use cache_util::{EvictionPolicyPQ, LFUHeapNode, LRUHeapNode};
+use cache_util::{Cache, EvictionCache, GenericCache};
+use cache_util::{EvictionPolicyPQ, LFUHeapNode, LRUHeapNode, ValueAwareHeapNode};
 
 pub struct LFUCache {
     cache: GenericCache<EvictionPolicyPQ<LFUHeapNode<LRUHeapNode>>, HashMapStorage>,
+}
+
+pub struct LFUEvictionCache {
+    cache: EvictionCache<EvictionPolicyPQ<ValueAwareHeapNode<LFUHeapNode<LRUHeapNode>>>>,
 }
 
 /**
@@ -16,6 +20,25 @@ impl LFUCache {
             cache: GenericCache::new(
                 EvictionPolicyPQ::<LFUHeapNode<LRUHeapNode>>::default(),
                 HashMapStorage::new(capacity as usize),
+                capacity as usize,
+            ),
+        }
+    }
+
+    pub fn put(&mut self, key: i32, value: i32) {
+        self.cache.put(key, value);
+    }
+
+    pub fn get(&mut self, key: i32) -> i32 {
+        self.cache.get(&key).unwrap_or(-1)
+    }
+}
+
+impl LFUEvictionCache {
+    pub fn new(capacity: i32) -> Self {
+        Self {
+            cache: EvictionCache::new(
+                EvictionPolicyPQ::<ValueAwareHeapNode<LFUHeapNode<LRUHeapNode>>>::default(),
                 capacity as usize,
             ),
         }
