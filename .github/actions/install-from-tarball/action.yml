@@ -71,4 +71,4 @@ inputs:
   target_path:
     description: "Destination directory for the installed binary"
     required: false
-    default: "~/.cargo/bin"
+    default: "$CARGO_HOME/bin"

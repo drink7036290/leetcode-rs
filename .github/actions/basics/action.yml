@@ -25,14 +25,6 @@ runs:
         executable: "lychee"
         target_path: "$CARGO_HOME/bin"
 
-    - name: Add cargo bin to PATH
-      shell: bash
-      run: echo "${CARGO_HOME:-$HOME/.cargo}/bin" >> "$GITHUB_PATH"
-
-    - name: Print PATH
-      shell: bash
-      run: echo "$PATH"
-
     - uses: Swatinem/rust-cache@v2
 
     - name: Set up Node.js
@@ -54,7 +46,9 @@ runs:
 
     - name: Run pre-commit
       run: |
-        sudo apt update; sudo apt install pre-commit
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install pre-commit
         pre-commit run --all-files
       shell: bash
 
