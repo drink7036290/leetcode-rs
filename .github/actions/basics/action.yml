@@ -22,7 +22,7 @@ runs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: ${{ inputs.rust_nightly }}
-        components: clippy, rustfmt, lychee
+        components: clippy, rustfmt
 
     - name: Calculate elapsed after Rust installation
       run: |
@@ -45,6 +45,15 @@ runs:
         END=$(date +%s)
         echo "Cargo-deny install took: $((END - START)) seconds"
         echo "START=$END" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Install lychee
+      run: |
+        mkdir -p lychee-dir
+        curl -L https://github.com/lycheeverse/lychee/releases/download/lychee-v0.18.0/lychee-x86_64-unknown-linux-musl.tar.gz | tar xz --strip-components=1 -C lychee-dir
+        chmod +x lychee-dir/lychee
+        mv lychee-dir/lychee ~/.cargo/bin/
+        rm -rf lychee-dir
       shell: bash
 
     - uses: Swatinem/rust-cache@v2
