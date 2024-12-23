@@ -1,8 +1,13 @@
 use super::CacheStorage;
-use std::collections::HashMap;
+use ahash::AHashMap;
 
-#[derive(Default)]
-pub struct HashMapStorage(HashMap<i32, i32>);
+pub struct HashMapStorage(AHashMap<i32, i32>);
+
+impl HashMapStorage {
+    pub fn new(capacity: usize) -> Self {
+        Self(AHashMap::with_capacity(capacity))
+    }
+}
 
 impl CacheStorage for HashMapStorage {
     fn put(&mut self, key: i32, value: i32) {
