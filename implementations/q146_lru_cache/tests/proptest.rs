@@ -43,13 +43,13 @@ fn test_lru_cache_with_operations(capacity: usize, operations: Vec<CacheOperatio
 
                 // Compare results
                 assert_eq!(
-                    result_priority_queue, result_vec_hashmap,
-                    "priority_queue and vec_hashmap differ on get({})",
+                    result_priority_queue, result_priority_queue_eviction,
+                    "priority_queue and priority_queue_eviction differ on get({})",
                     key
                 );
                 assert_eq!(
-                    result_priority_queue, result_priority_queue_eviction,
-                    "priority_queue and priority_queue_eviction differ on get({})",
+                    result_priority_queue, result_vec_hashmap,
+                    "priority_queue and vec_hashmap differ on get({})",
                     key
                 );
                 assert_eq!(

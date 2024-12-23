@@ -29,34 +29,64 @@ fn operation_sequence_strategy() -> impl Strategy<Value = Vec<CacheOperation>> {
 }
 
 fn test_lfu_cache_with_operations(capacity: i32, operations: Vec<CacheOperation>) {
-    use q460_lfu_cache::intrusive_two_hashmaps::LFUCache as LFUCache_v4;
-    use q460_lfu_cache::priority_queue::LFUCache as LFUCache_v1;
-    use q460_lfu_cache::two_hashmaps::LFUCache as LFUCache_v3;
-    use q460_lfu_cache::vec_hashmap::LFUCache as LFUCache_v2;
+    use q460_lfu_cache::intrusive_two_hashmaps::LFUCache as LFUCache_intrusive_two_hashmaps;
+    use q460_lfu_cache::priority_queue::LFUCache as LFUCache_priority_queue;
+    use q460_lfu_cache::priority_queue::LFUEvictionCache as LFUEvictionCache_priority_queue;
+    use q460_lfu_cache::two_hashmaps::LFUCache as LFUCache_two_hashmaps;
+    use q460_lfu_cache::vec_hashmap::LFUCache as LFUCache_vec_hashmap;
+    use q460_lfu_cache::vec_hashmap::LFUEvictionCache as LFUEvictionCache_vec_hashmap;
 
-    let mut cache_v1 = LFUCache_v1::new(capacity);
-    let mut cache_v2 = LFUCache_v2::new(capacity);
-    let mut cache_v3 = LFUCache_v3::new(capacity);
-    let mut cache_v4 = LFUCache_v4::new(capacity);
+    let mut cache_priority_queue = LFUCache_priority_queue::new(capacity);
+    let mut cache_priority_queue_eviction = LFUEvictionCache_priority_queue::new(capacity);
+    let mut cache_vec_hashmap = LFUCache_vec_hashmap::new(capacity);
+    let mut cache_vec_hashmap_eviction = LFUEvictionCache_vec_hashmap::new(capacity);
+    let mut cache_two_hashmaps = LFUCache_two_hashmaps::new(capacity);
+    let mut cache_intrusive_two_hashmaps = LFUCache_intrusive_two_hashmaps::new(capacity);
 
     for operation in operations {
         match operation {
             CacheOperation::Put { key, value } => {
-                cache_v1.put(key, value);
-                cache_v2.put(key, value);
-                cache_v3.put(key, value);
-                cache_v4.put(key, value);
+                cache_priority_queue.put(key, value);
+                cache_priority_queue_eviction.put(key, value);
+                cache_vec_hashmap.put(key, value);
+                cache_vec_hashmap_eviction.put(key, value);
+                cache_two_hashmaps.put(key, value);
+                cache_intrusive_two_hashmaps.put(key, value);
             }
             CacheOperation::Get { key } => {
-                let result_v1 = cache_v1.get(key);
-                let result_v2 = cache_v2.get(key);
-                let result_v3 = cache_v3.get(key);
-                let result_v4 = cache_v4.get(key);
+                let result_priority_queue = cache_priority_queue.get(key);
+                let result_priority_queue_eviction = cache_priority_queue_eviction.get(key);
+                let result_vec_hashmap = cache_vec_hashmap.get(key);
+                let result_vec_hashmap_eviction = cache_vec_hashmap_eviction.get(key);
+                let result_two_hashmaps = cache_two_hashmaps.get(key);
+                let result_intrusive_two_hashmaps = cache_intrusive_two_hashmaps.get(key);
 
                 // Compare results
-                assert_eq!(result_v1, result_v2, "v1 and v2 differ on get({})", key);
-                assert_eq!(result_v1, result_v3, "v1 and v3 differ on get({})", key);
-                assert_eq!(result_v1, result_v4, "v1 and v4 differ on get({})", key);
+                assert_eq!(
+                    result_priority_queue, result_priority_queue_eviction,
+                    "priority_queue and priority_queue_eviction differ on get({})",
+                    key
+                );
+                assert_eq!(
+                    result_priority_queue, result_vec_hashmap,
+                    "priority_queue and vec_hashmap differ on get({})",
+                    key
+                );
+                assert_eq!(
+                    result_priority_queue, result_vec_hashmap_eviction,
+                    "priority_queue and vec_hashmap_eviction differ on get({})",
+                    key
+                );
+                assert_eq!(
+                    result_priority_queue, result_two_hashmaps,
+                    "priority_queue and two_hashmaps differ on get({})",
+                    key
+                );
+                assert_eq!(
+                    result_priority_queue, result_intrusive_two_hashmaps,
+                    "priority_queue and intrusive_two_hashmaps differ on get({})",
+                    key
+                );
             }
         }
     }

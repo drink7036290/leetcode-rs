@@ -7,13 +7,13 @@ bench_cache!(
 );
 
 bench_cache!(
-    q146_lru_cache_bench_vec_hashmap_ev,
+    q146_lru_cache_bench_vec_hashmap_eviction,
     q146_lru_cache::vec_hashmap::LRUEvictionCache
 );
 
 criterion_group!(
     benches,
     q146_lru_cache_bench_vec_hashmap,
-    q146_lru_cache_bench_vec_hashmap_ev,
+    q146_lru_cache_bench_vec_hashmap_eviction,
 );
 criterion_main!(benches);
