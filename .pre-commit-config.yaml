@@ -45,9 +45,9 @@ repos:
         pass_filenames: true
         files: \.md$
 
-  - repo: https://github.com/lycheeverse/lychee.git
-    rev: v0.15.1
-    hooks:
+      # Link validation
       - id: lychee
-        # Optionally include additional CLI arguments
-        args: ["--no-progress", "--exclude", "file://"]
+        name: Lychee
+        language: system
+        entry: lychee
+        args: ["--no-progress"]
