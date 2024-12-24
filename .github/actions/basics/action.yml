@@ -6,7 +6,8 @@ runs:
     - uses: actions/checkout@v4
 
     - uses: ./.github/actions/elapsed-time
-      with: statement: "actions/checkout"
+      with:
+        statement: "actions/checkout"
 
     - name: Install Rust nightly
       uses: dtolnay/rust-toolchain@stable
@@ -15,12 +16,14 @@ runs:
         components: clippy, rustfmt
 
     - uses: ./.github/actions/elapsed-time
-      with: statement: "rust-toolchain"
+      with:
+        statement: "rust-toolchain"
 
     - uses: Swatinem/rust-cache@v2
 
     - uses: ./.github/actions/elapsed-time
-      with: statement: "rust-cache"
+      with:
+        statement: "rust-cache"
 
     - name: Install cargo-deny
       uses: ./.github/actions/install-from-tarball
@@ -30,7 +33,8 @@ runs:
         target_path: "$CARGO_HOME/bin"
 
     - uses: ./.github/actions/elapsed-time
-      with: statement: "cargo-deny"
+      with:
+        statement: "Install cargo-deny"
 
     - name: Install lychee
       uses: ./.github/actions/install-from-tarball
@@ -40,12 +44,14 @@ runs:
         target_path: "$CARGO_HOME/bin"
 
     - uses: ./.github/actions/elapsed-time
-      with: statement: "lychee"
+      with:
+        statement: "Install lychee"
 
     - uses: ./.github/actions/setup-node-cache-action
 
     - uses: ./.github/actions/elapsed-time
-      with: statement: "setup-node-cache-action"
+      with:
+        statement: "setup-node-cache-action"
 
     - name: Restore lychee cache
       uses: actions/cache@v4
@@ -55,7 +61,8 @@ runs:
         restore-keys: cache-lychee-
 
     - uses: ./.github/actions/elapsed-time
-      with: statement: "Restore lychee cache"
+      with:
+        statement: "Restore lychee cache"
 
     - name: Run pre-commit
       run: |
@@ -66,7 +73,8 @@ runs:
       shell: bash
 
     - uses: ./.github/actions/elapsed-time
-      with: statement: "pre-commit"
+      with:
+        statement: "pre-commit"
 
 inputs:
   rust_nightly:
