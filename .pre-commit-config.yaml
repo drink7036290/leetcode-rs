@@ -39,10 +39,12 @@ repos:
       # Markdown linting
       - id: markdownlint
         name: Markdownlint
-        language: node
+        language: system
         entry: npx
         args:
-          - markdownlint
+          - "--prefix"
+          - ".github/actions/setup-node-cache-action"
+          - "markdownlint"
           - "--ignore"
           - "node_modules"
         pass_filenames: true

@@ -16,3 +16,6 @@ metrics.json
 
 # lychee
 .lycheecache
+
+# ignore node_modules
+**/node_modules

@@ -1,6 +1,6 @@
 name: "Setup Node with Cache"
 description: "Sets up Node.js, caches node_modules, and installs dependencies"
-author: "YourName"
+
 inputs:
   node-version:
     description: "Version of Node.js to install"
@@ -16,15 +16,17 @@ runs:
         node-version: ${{ inputs.node-version }}
 
     - name: Cache node_modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
-        path: node_modules
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        path: .github/actions/setup-node-cache-action/node_modules
+        key:
+          ${{ runner.os }}-node-${{
+          hashFiles('.github/actions/setup-node-cache-action/package-lock.json')
+          }}
         restore-keys: |
           ${{ runner.os }}-node-
 
-    - name: Install Dependencies
+    - name: Install markdownlint
+      working-directory: .github/actions/setup-node-cache-action
       shell: bash
-      run: |
-        # Optionally switch to 'npm ci' if you want a clean install each time
-        npm install
+      run: npm install
