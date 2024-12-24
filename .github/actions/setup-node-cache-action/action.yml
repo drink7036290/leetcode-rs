@@ -24,6 +24,7 @@ runs:
           ${{ runner.os }}-node-
 
     - name: Install Dependencies
+      shell: bash
       run: |
         # Optionally switch to 'npm ci' if you want a clean install each time
         npm install
