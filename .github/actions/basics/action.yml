@@ -11,6 +11,8 @@ runs:
         toolchain: ${{ inputs.rust_nightly }}
         components: clippy, rustfmt
 
+    - uses: Swatinem/rust-cache@v2
+
     - name: Install cargo-deny
       uses: ./.github/actions/install-from-tarball
       with:
@@ -24,8 +26,6 @@ runs:
         url: "https://github.com/lycheeverse/lychee/releases/download/lychee-v0.18.0/lychee-x86_64-unknown-linux-musl.tar.gz"
         executable: "lychee"
         target_path: "$CARGO_HOME/bin"
-
-    - uses: Swatinem/rust-cache@v2
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
