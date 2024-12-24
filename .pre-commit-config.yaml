@@ -36,18 +36,14 @@ repos:
         args: ["deny", "check"]
         pass_filenames: false
 
-      # Markdown linting
-      - id: markdownlint
-        name: Markdownlint
-        language: node
-        entry: markdownlint
-        args: ["--ignore", "node_modules"]
-        pass_filenames: true
-        files: \.md$
-
       # Link validation
       - id: lychee
         name: Lychee
         language: system
         entry: lychee
         args: ["--no-progress", "--cache"]
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.43.0
+    hooks:
+      - id: markdownlint

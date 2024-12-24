@@ -47,19 +47,6 @@ runs:
       with:
         statement: "Install lychee"
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: "latest"
-
-    - name: Install markdownlint-cli
-      run: npm install -g markdownlint-cli
-      shell: bash
-
-    - uses: ./.github/actions/elapsed-time
-      with:
-        statement: "setup-node-cache-action"
-
     - name: Restore lychee cache
       uses: actions/cache@v4
       with:
