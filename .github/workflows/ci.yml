@@ -286,12 +286,8 @@ jobs:
   # Basic actions that must pass before we kick off more expensive tests.
   basics:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/basics
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           rust_nightly: ${{ env.rust_nightly }}
