@@ -17,6 +17,11 @@ runs:
     - uses: ./.github/actions/elapsed-time
       with: statement: "rust-toolchain"
 
+    - uses: Swatinem/rust-cache@v2
+
+    - uses: ./.github/actions/elapsed-time
+      with: statement: "rust-cache"
+
     - name: Install cargo-deny
       uses: ./.github/actions/install-from-tarball
       with:
@@ -37,19 +42,13 @@ runs:
     - uses: ./.github/actions/elapsed-time
       with: statement: "lychee"
 
-    - uses: Swatinem/rust-cache@v2
-
-    - uses: ./.github/actions/elapsed-time
-      with: statement: "rust-cache"
-
     - uses: ./.github/actions/setup-node-cache-action
 
     - uses: ./.github/actions/elapsed-time
       with: statement: "setup-node-cache-action"
 
     - name: Restore lychee cache
-      id: restore-cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache@v4
       with:
         path: .lycheecache
         key: cache-lychee-${{ github.sha }}
@@ -68,16 +67,6 @@ runs:
 
     - uses: ./.github/actions/elapsed-time
       with: statement: "pre-commit"
-
-    - name: Save lychee cache
-      uses: actions/cache/save@v4
-      if: always()
-      with:
-        path: .lycheecache
-        key: ${{ steps.restore-cache.outputs.cache-primary-key }}
-
-    - uses: ./.github/actions/elapsed-time
-      with: statement: "Save lychee cache"
 
 inputs:
   rust_nightly:
