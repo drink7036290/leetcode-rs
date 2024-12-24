@@ -17,20 +17,17 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Load last time
-      id: load_time
+    - name: elapsed-time
       shell: bash
       run: |
-        echo "Elapsed time for ${{ inputs.statement }}"
-
         FILE=".elapsed_time_${{ inputs.reference }}"
         if [ -f "$FILE" ]; then
           last_time=$(cat "$FILE")
           current_time=$(date +%s)
-          delta=$(( current_time - last_time ))
-          echo "Elapsed: $delta seconds"
+          delta=$(( ${current_time:-0} - ${last_time:-0} ))
+          echo "Elapsed time for ${{ inputs.statement }}: $delta seconds"
         else
-          echo "Elapsed: 0 seconds"
+          echo "Elapsed time for ${{ inputs.statement }}: 0 seconds"
         fi
 
         # Overwrite the timestamp file for next time
