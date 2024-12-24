@@ -1,0 +1,49 @@
+name: "Elapsed Time"
+description: "Print how many seconds have elapsed since the last call"
+inputs:
+  reference:
+    description: "Optional unique name for the timestamp file"
+    required: false
+    default: "generic"
+
+outputs:
+  delta:
+    description: "Time delta in seconds since last call"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Load last time
+      id: load_time
+      shell: bash
+      run: |
+        FILE=".elapsed_time_${{ inputs.reference }}"
+        if [ -f "$FILE" ]; then
+          echo "last_time=$(cat "$FILE")" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Compute delta
+      id: compute_delta
+      shell: bash
+      run: |
+        current_time=$(date +%s)
+
+        # If "last_time" is empty => first call => delta=0
+        if [ -z "${{ steps.load_time.outputs.last_time }}" ]; then
+          delta=0
+        else
+          last_time="${{ steps.load_time.outputs.last_time }}"
+          delta=$(( current_time - last_time ))
+        fi
+
+        # Save the result to the step output
+        echo "delta=$delta" >> "$GITHUB_OUTPUT"
+
+        # Overwrite the timestamp file for next time
+        FILE=".elapsed_time_${{ inputs.reference }}"
+        echo "$current_time" > "$FILE"
+
+    - name: Print
+      shell: bash
+      run: |
+        echo "Elapsed: ${{ steps.compute_delta.outputs.delta }} seconds"

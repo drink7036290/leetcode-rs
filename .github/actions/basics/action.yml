@@ -5,11 +5,15 @@ runs:
   steps:
     - uses: actions/checkout@v4
 
+    - uses: ./.github/actions/elapsed-time
+
     - name: Install Rust nightly
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: ${{ inputs.rust_nightly }}
         components: clippy, rustfmt
+
+    - uses: ./.github/actions/elapsed-time
 
     - name: Install cargo-deny
       uses: ./.github/actions/install-from-tarball
@@ -18,6 +22,8 @@ runs:
         executable: "cargo-deny"
         target_path: "$CARGO_HOME/bin"
 
+    - uses: ./.github/actions/elapsed-time
+
     - name: Install lychee
       uses: ./.github/actions/install-from-tarball
       with:
@@ -25,9 +31,15 @@ runs:
         executable: "lychee"
         target_path: "$CARGO_HOME/bin"
 
+    - uses: ./.github/actions/elapsed-time
+
     - uses: Swatinem/rust-cache@v2
 
+    - uses: ./.github/actions/elapsed-time
+
     - uses: ./.github/actions/setup-node-cache-action
+
+    - uses: ./.github/actions/elapsed-time
 
     - name: Restore lychee cache
       id: restore-cache
@@ -37,6 +49,8 @@ runs:
         key: cache-lychee-${{ github.sha }}
         restore-keys: cache-lychee-
 
+    - uses: ./.github/actions/elapsed-time
+
     - name: Run pre-commit
       run: |
         python3 -m venv venv
@@ -45,12 +59,16 @@ runs:
         pre-commit run --all-files
       shell: bash
 
+    - uses: ./.github/actions/elapsed-time
+
     - name: Save lychee cache
       uses: actions/cache/save@v4
       if: always()
       with:
         path: .lycheecache
         key: ${{ steps.restore-cache.outputs.cache-primary-key }}
+
+    - uses: ./.github/actions/elapsed-time
 
 inputs:
   rust_nightly:
