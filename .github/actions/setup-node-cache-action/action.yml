@@ -1,0 +1,29 @@
+name: "Setup Node with Cache"
+description: "Sets up Node.js, caches node_modules, and installs dependencies"
+author: "YourName"
+inputs:
+  node-version:
+    description: "Version of Node.js to install"
+    required: false
+    default: "latest"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Cache node_modules
+      uses: actions/cache@v3
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install Dependencies
+      run: |
+        # Optionally switch to 'npm ci' if you want a clean install each time
+        npm install

@@ -27,14 +27,7 @@ runs:
 
     - uses: Swatinem/rust-cache@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: "latest"
-
-    - name: Install markdownlint-cli
-      run: npm install -g markdownlint-cli
-      shell: bash
+    - uses: ./.github/actions/setup-node-cache-action
 
     - name: Restore lychee cache
       id: restore-cache

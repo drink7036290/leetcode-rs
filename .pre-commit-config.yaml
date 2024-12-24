@@ -40,8 +40,11 @@ repos:
       - id: markdownlint
         name: Markdownlint
         language: node
-        entry: markdownlint
-        args: ["--ignore", "node_modules"]
+        entry: npx
+        args:
+          - markdownlint
+          - "--ignore"
+          - "node_modules"
         pass_filenames: true
         files: \.md$
 
