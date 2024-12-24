@@ -1,5 +1,6 @@
 name: "Elapsed Time"
 description: "Print how many seconds have elapsed since the last call"
+
 inputs:
   statement:
     description: "Statement to print"
@@ -17,19 +18,34 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: elapsed-time
+    - name: Elapsed Time
+      id: elapsed
       shell: bash
       run: |
         FILE=".elapsed_time_${{ inputs.reference }}"
+
+        # 1) Read previous timestamp if present
         if [ -f "$FILE" ]; then
-          last_time=$(cat "$FILE")
-          current_time=$(date +%s)
-          delta=$(( ${current_time:-0} - ${last_time:-0} ))
-          echo "Elapsed time for ${{ inputs.statement }}: $delta seconds"
+          last_time="$(cat "$FILE")"
         else
-          echo "Elapsed time for ${{ inputs.statement }}: 0 seconds"
+          last_time=""
         fi
 
-        # Overwrite the timestamp file for next time
-        FILE=".elapsed_time_${{ inputs.reference }}"
+        # 2) Get current time
+        current_time=$(date +%s)
+
+        # 3) Calculate the delta
+        if [ -z "$last_time" ]; then
+          delta=0
+        else
+          delta=$(( current_time - last_time ))
+        fi
+
+        # 4) Print message
+        echo "Elapsed time for ${{ inputs.statement }}: $delta seconds"
+
+        # 5) Expose as output (optional)
+        echo "delta=$delta" >> "$GITHUB_OUTPUT"
+
+        # 6) Write new timestamp
         echo "$current_time" > "$FILE"
