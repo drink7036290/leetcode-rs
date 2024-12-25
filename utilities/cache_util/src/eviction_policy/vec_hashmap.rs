@@ -1,7 +1,7 @@
 use super::{EvictionAsStoragePolicy, EvictionPolicy};
 use crate::HeapNodeTrait;
 
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 use std::mem::swap;
 
 pub struct EvictionPolicyVHM<H>
@@ -9,7 +9,7 @@ where
     H: HeapNodeTrait<Key = i32>,
 {
     map: HashMap<i32, usize>, // key -> vec's index
-    arr: VecDeque<Box<H>>,
+    arr: Vec<H>,
 }
 
 impl<H> EvictionPolicyVHM<H>
@@ -19,7 +19,7 @@ where
     pub fn new() -> Self {
         Self {
             map: HashMap::new(),
-            arr: VecDeque::new(),
+            arr: Vec::new(),
         }
     }
 
@@ -38,19 +38,19 @@ where
             swap(index1, index2);
         }
     }
-    /*
-       fn swap_nodes(&mut self, index1: usize, index2: usize) {
-           debug_assert!(index1 < self.arr.len());
-           debug_assert!(index2 < self.arr.len());
 
-           if index1 == index2 {
-               return;
-           }
+    fn swap_nodes(&mut self, index1: usize, index2: usize) {
+        debug_assert!(index1 < self.arr.len());
+        debug_assert!(index2 < self.arr.len());
 
-           let (key1, key2) = (*self.arr[index1].key(), *self.arr[index2].key());
-           self.swap_nodes_with_key(&key1, &key2);
-       }
-    */
+        if index1 == index2 {
+            return;
+        }
+
+        let (key1, key2) = (*self.arr[index1].key(), *self.arr[index2].key());
+        self.swap_nodes_with_key(&key1, &key2);
+    }
+
     fn sift_up(&mut self, mut index: usize) {
         debug_assert!(index < self.arr.len());
 
@@ -80,7 +80,7 @@ where
             let (next_index, next_node) = self.pick_smaller_child(left_child_index);
 
             // already in order
-            if **node <= *next_node {
+            if *node <= *next_node {
                 break;
             }
 
@@ -132,7 +132,7 @@ where
         if let Some(index) = self.map.get(&key) {
             self.sift_down(*index);
         } else {
-            self.arr.push_back(Box::new(HeapNodeTrait::new(key, ())));
+            self.arr.push(HeapNodeTrait::new(key, ()));
 
             let index = self.arr.len() - 1;
             self.map.insert(key, index);
@@ -141,7 +141,7 @@ where
     }
 
     fn evict(&mut self) -> Option<i32> {
-        if let Some(node) = self.arr.swap_remove_back(0) {
+        /*         if let Some(node) = self.arr.swap_remove_back(0) {
             self.map.remove(node.key());
 
             if self.arr.is_empty() {
@@ -158,8 +158,8 @@ where
             return Some(*node.key());
         }
 
-        None
-        /*
+        None */
+
         if self.arr.is_empty() {
             return None;
         }
@@ -171,13 +171,13 @@ where
         }
 
         self.map.remove(self.arr[last_index].key());
-        let result = self.arr.pop_back().map(|node| *node.key());
+        let result = self.arr.pop().map(|node| *node.key());
 
         if last_index > 0 {
             self.sift_down(0);
         }
 
-        result */
+        result
     }
 }
 
@@ -186,24 +186,24 @@ where
     H: HeapNodeTrait<Key = i32, Value = i32>,
 {
     fn evict(&mut self) -> Option<i32> {
-        if let Some(node) = self.arr.swap_remove_back(0) {
-            self.map.remove(node.key());
-
-            if self.arr.is_empty() {
-                return None;
-            }
-
-            let key = *self.arr[0].key();
-            if let Some(index) = self.map.get_mut(&key) {
-                *index = 0;
-            }
-
-            self.sift_down(0);
-
-            return Some(*node.key());
+        if self.arr.is_empty() {
+            return None;
         }
 
-        None
+        let last_index = self.arr.len() - 1;
+
+        if last_index > 0 {
+            self.swap_nodes(0, last_index);
+        }
+
+        self.map.remove(self.arr[last_index].key());
+        let result = self.arr.pop().map(|node| *node.key());
+
+        if last_index > 0 {
+            self.sift_down(0);
+        }
+
+        result
     }
 
     fn get(&mut self, key: &i32) -> Option<i32> {
@@ -223,7 +223,7 @@ where
             self.arr[index].set_value(value);
             self.sift_down(index);
         } else {
-            self.arr.push_back(Box::new(HeapNodeTrait::new(key, value)));
+            self.arr.push(HeapNodeTrait::new(key, value));
 
             let index = self.arr.len() - 1;
             self.map.insert(key, index);
