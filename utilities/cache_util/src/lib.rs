@@ -1,3 +1,5 @@
+#![feature(map_many_mut)]
+
 mod cache;
 pub use cache::*;
 
