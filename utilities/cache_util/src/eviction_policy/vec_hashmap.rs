@@ -2,7 +2,6 @@ use super::{EvictionAsStoragePolicy, EvictionPolicy};
 use crate::HeapNodeTrait;
 
 use std::collections::HashMap;
-use std::mem::swap;
 
 pub struct EvictionPolicyVHM<H>
 where
@@ -32,10 +31,14 @@ where
         None
     }
 
-    fn swap_nodes_with_key(&mut self, key1: &i32, key2: &i32) {
-        if let [Some(index1), Some(index2)] = self.map.get_many_mut([key1, key2]) {
-            self.arr.swap(*index1, *index2);
-            swap(index1, index2);
+    fn swap_nodes_with_key(&mut self, key1: &i32, index1: usize, key2: &i32, index2: usize) {
+        if let [Some(mut_index1), Some(mut_index2)] = self.map.get_many_mut([key1, key2]) {
+            // self.arr.swap(*mut_index1, *mut_index2); // slower
+            self.arr.swap(index1, index2);
+
+            //swap(mut_index1, mut_index2); // same as below
+            *mut_index1 = index2;
+            *mut_index2 = index1;
         }
     }
 
@@ -48,7 +51,7 @@ where
         }
 
         let (key1, key2) = (*self.arr[index1].key(), *self.arr[index2].key());
-        self.swap_nodes_with_key(&key1, &key2);
+        self.swap_nodes_with_key(&key1, index1, &key2, index2);
     }
 
     fn sift_up(&mut self, mut index: usize) {
@@ -65,7 +68,7 @@ where
             }
 
             let (key, parent_key) = (*node.key(), *parent_node.key());
-            self.swap_nodes_with_key(&key, &parent_key);
+            self.swap_nodes_with_key(&key, index, &parent_key, parent_index);
 
             index = parent_index;
         }
@@ -85,7 +88,7 @@ where
             }
 
             let (key, next_key) = (*node.key(), *next_node.key());
-            self.swap_nodes_with_key(&key, &next_key);
+            self.swap_nodes_with_key(&key, index, &next_key, next_index);
 
             index = next_index;
         }
