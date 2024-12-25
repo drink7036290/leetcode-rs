@@ -1,10 +1,12 @@
 use super::{EvictionAsStoragePolicy, EvictionPolicy};
 use crate::HeapNodeTrait;
 
-use std::cmp::Ordering;
 use std::collections::HashMap;
 
-pub struct EvictionPolicyVHM<H> {
+pub struct EvictionPolicyVHM<H>
+where
+    H: HeapNodeTrait<Key = i32>,
+{
     map: HashMap<i32, usize>, // key -> vec's index
     arr: Vec<H>,
 }
@@ -20,123 +22,92 @@ where
         }
     }
 
-    fn get_node(&self, index: usize) -> Option<&H> {
-        match index.cmp(&self.arr.len()) {
-            Ordering::Less => Some(&self.arr[index]),
-            _ => None,
-        }
-    }
-
-    fn get_parent(&self, index: usize) -> Option<(usize, &H)> {
-        match index {
-            0 => None,
-            _ => {
-                let parent_index = (index - 1) >> 1;
-                self.get_node(parent_index).map(|node| (parent_index, node))
-            }
-        }
-    }
-
-    fn get_left_child(&self, index: usize) -> Option<(usize, &H)> {
-        let left_child_index = (index << 1) + 1;
-        self.get_node(left_child_index)
-            .map(|node| (left_child_index, node))
-    }
-
-    fn get_right_child(&self, index: usize) -> Option<(usize, &H)> {
-        let right_child_index = (index << 1) + 2;
-        self.get_node(right_child_index)
-            .map(|node| (right_child_index, node))
-    }
-
-    fn swap_nodes_with_key(&mut self, key1: i32, index1: usize, key2: i32, index2: usize) {
-        match self.map.get_mut(&key1) {
-            Some(v) => *v = index2,
-            None => panic!("key {} not found in map", key1),
+    fn get_left_child(&self, mut index: usize) -> Option<usize> {
+        index = (index << 1) + 1;
+        if index < self.arr.len() {
+            return Some(index);
         }
 
-        match self.map.get_mut(&key2) {
-            Some(v) => *v = index1,
-            None => panic!("key {} not found in map", key2),
-        }
+        None
+    }
 
-        self.arr.swap(index1, index2);
+    fn swap_nodes_with_key(&mut self, key1: &i32, index1: usize, key2: &i32, index2: usize) {
+        if let [Some(mut_index1), Some(mut_index2)] = self.map.get_many_mut([key1, key2]) {
+            // self.arr.swap(*mut_index1, *mut_index2); // slower
+            self.arr.swap(index1, index2);
+
+            //swap(mut_index1, mut_index2); // same as below
+            *mut_index1 = index2;
+            *mut_index2 = index1;
+        }
     }
 
     fn swap_nodes(&mut self, index1: usize, index2: usize) {
-        let key1 = match self.get_node(index1) {
-            Some(v) => v.key(),
-            None => panic!("Could not find node with vec index {} ", index1),
-        };
+        debug_assert!(index1 < self.arr.len());
+        debug_assert!(index2 < self.arr.len());
 
-        let key2 = match self.get_node(index2) {
-            Some(v) => v.key(),
-            None => panic!("Could not find node with vec index {} ", index2),
-        };
+        if index1 == index2 {
+            return;
+        }
 
-        self.swap_nodes_with_key(*key1, index1, *key2, index2);
+        let (key1, key2) = (*self.arr[index1].key(), *self.arr[index2].key());
+        self.swap_nodes_with_key(&key1, index1, &key2, index2);
     }
 
-    fn sift_up(&mut self, index: usize) {
-        let mut index = index;
+    fn sift_up(&mut self, mut index: usize) {
+        debug_assert!(index < self.arr.len());
 
-        while let Some((parent_index, parent_node)) = self.get_parent(index) {
-            let node = match self.get_node(index) {
-                Some(v) => v,
-                None => break,
-            };
+        while index > 0 {
+            let parent_index = (index - 1) >> 1;
+
+            let (node, parent_node) = (&self.arr[index], &self.arr[parent_index]);
 
             // already in order
             if *node >= *parent_node {
                 break;
             }
 
-            // swap with parent
-            self.swap_nodes_with_key(*node.key(), index, *parent_node.key(), parent_index);
+            let (key, parent_key) = (*node.key(), *parent_node.key());
+            self.swap_nodes_with_key(&key, index, &parent_key, parent_index);
+
             index = parent_index;
         }
     }
 
-    fn sift_down(&mut self, index: usize) {
-        let mut index = index;
+    fn sift_down(&mut self, mut index: usize) {
+        debug_assert!(index < self.arr.len());
 
-        while let Some((left_child_index, left_child_node)) = self.get_left_child(index) {
-            let node = match self.get_node(index) {
-                Some(v) => v,
-                None => break,
-            };
+        while let Some(left_child_index) = self.get_left_child(index) {
+            let node = &self.arr[index];
 
-            // right child exists
-            if let Some((right_child_index, right_child_node)) = self.get_right_child(index) {
-                // right child is smaller
-                if *left_child_node >= *right_child_node {
-                    // already in order
-                    if *node <= *right_child_node {
-                        break;
-                    }
-
-                    // swap with right child
-                    self.swap_nodes_with_key(
-                        *node.key(),
-                        index,
-                        *right_child_node.key(),
-                        right_child_index,
-                    );
-                    index = right_child_index;
-
-                    continue;
-                }
-            }
+            let (next_index, next_node) = self.pick_smaller_child(left_child_index);
 
             // already in order
-            if *node <= *left_child_node {
+            if *node <= *next_node {
                 break;
             }
 
-            // swap with left child
-            self.swap_nodes_with_key(*node.key(), index, *left_child_node.key(), left_child_index);
-            index = left_child_index;
+            let (key, next_key) = (*node.key(), *next_node.key());
+            self.swap_nodes_with_key(&key, index, &next_key, next_index);
+
+            index = next_index;
         }
+    }
+
+    fn pick_smaller_child(&self, left_child_index: usize) -> (usize, &H) {
+        let left_child_node = &self.arr[left_child_index];
+
+        let right_child_index = left_child_index + 1;
+        if right_child_index < self.arr.len() {
+            let right_child_node = &self.arr[right_child_index];
+
+            // right child is strictly smaller
+            if *left_child_node > *right_child_node {
+                return (right_child_index, right_child_node);
+            }
+        }
+
+        (left_child_index, left_child_node)
     }
 }
 
@@ -154,11 +125,9 @@ where
     H: HeapNodeTrait<Key = i32, Value = ()>,
 {
     fn on_get(&mut self, key: &i32) {
-        if let Some(index) = self.map.get(key) {
-            if index.cmp(&self.arr.len()).is_lt() {
-                self.arr[*index].on_access();
-                self.sift_down(*index);
-            }
+        if let Some(index) = self.map.get(key).cloned() {
+            self.arr[index].on_access();
+            self.sift_down(index);
         }
     }
 
@@ -167,22 +136,49 @@ where
             self.sift_down(*index);
         } else {
             self.arr.push(HeapNodeTrait::new(key, ()));
-            self.map.insert(key, self.arr.len() - 1);
-            self.sift_up(self.arr.len() - 1);
+
+            let index = self.arr.len() - 1;
+            self.map.insert(key, index);
+            self.sift_up(index);
         }
     }
 
     fn evict(&mut self) -> Option<i32> {
+        /*         if let Some(node) = self.arr.swap_remove_back(0) {
+            self.map.remove(node.key());
+
+            if self.arr.is_empty() {
+                return None;
+            }
+
+            let key = *self.arr[0].key();
+            if let Some(index) = self.map.get_mut(&key) {
+                *index = 0;
+            }
+
+            self.sift_down(0);
+
+            return Some(*node.key());
+        }
+
+        None */
+
         if self.arr.is_empty() {
             return None;
         }
 
         let last_index = self.arr.len() - 1;
 
-        self.swap_nodes(0, last_index);
+        if last_index > 0 {
+            self.swap_nodes(0, last_index);
+        }
+
         self.map.remove(self.arr[last_index].key());
         let result = self.arr.pop().map(|node| *node.key());
-        self.sift_down(0);
+
+        if last_index > 0 {
+            self.sift_down(0);
+        }
 
         result
     }
@@ -199,26 +195,30 @@ where
 
         let last_index = self.arr.len() - 1;
 
-        self.swap_nodes(0, last_index);
+        if last_index > 0 {
+            self.swap_nodes(0, last_index);
+        }
+
         self.map.remove(self.arr[last_index].key());
         let result = self.arr.pop().map(|node| *node.key());
-        self.sift_down(0);
+
+        if last_index > 0 {
+            self.sift_down(0);
+        }
 
         result
     }
 
     fn get(&mut self, key: &i32) -> Option<i32> {
-        if let Some(index) = self.map.get(key).cloned() {
-            if index.cmp(&self.arr.len()).is_lt() {
-                let val = *self.arr[index].value();
-                self.arr[index].on_access();
-                self.sift_down(index);
+        self.map.get(key).cloned().map(|index| {
+            let node = &mut self.arr[index];
+            let val = *node.value();
 
-                return Some(val);
-            }
-        }
+            node.on_access();
+            self.sift_down(index);
 
-        None
+            val
+        })
     }
 
     fn put(&mut self, key: i32, value: i32) {
@@ -227,8 +227,10 @@ where
             self.sift_down(index);
         } else {
             self.arr.push(HeapNodeTrait::new(key, value));
-            self.map.insert(key, self.arr.len() - 1);
-            self.sift_up(self.arr.len() - 1);
+
+            let index = self.arr.len() - 1;
+            self.map.insert(key, index);
+            self.sift_up(index);
         }
     }
 
