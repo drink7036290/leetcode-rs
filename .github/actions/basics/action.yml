@@ -23,7 +23,10 @@ runs:
 
     # ===============================================
 
-    - uses: taiki-e/install-action@prefligit
+    - uses: cargo-bins/cargo-binstall@main
+    - name: Install prefligit
+      run: |
+        cargo binstall prefligit
 
     - uses: ./.github/actions/elapsed-time
       with:
