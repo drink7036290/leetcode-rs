@@ -28,33 +28,27 @@ repos:
           ]
         pass_filenames: false
 
-  #      # Cargo deny check
-  #      - id: cargo-deny
-  #        name: Cargo Deny
-  #        language: system
-  #        entry: cargo
-  #        args: ["deny", "check"]
-  #        pass_filenames: false
-  #
-  #      # Link validation
-  #      - id: lychee
-  #        name: Lychee
-  #        language: system
-  #        entry: lychee
-  #        args: ["--no-progress", "--cache"]
-
-  - repo: https://github.com/EmbarkStudios/cargo-deny
-    rev: 0.14.16 # choose your preferred tag
-    hooks:
+      # Cargo deny check
       - id: cargo-deny
-        args: ["--all-features", "check"]
+        name: Cargo Deny
+        language: system
+        entry: cargo
+        args: ["deny", "check"]
+        pass_filenames: false
+
+      # Link validation
+      - id: lychee
+        name: Lychee
+        language: system
+        entry: lychee
+        args: ["--no-progress", "--cache"]
 
   # [WON'T WORK !!!]
-  - repo: https://github.com/lycheeverse/lychee.git
-    rev: v0.15.1
-    hooks:
-      - id: lychee
-        args: ["--no-progress", "--cache"]
+  #  - repo: https://github.com/lycheeverse/lychee.git
+  #    rev: v0.15.1
+  #    hooks:
+  #      - id: lychee
+  #        args: ["--no-progress", "--cache"]
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.43.0
