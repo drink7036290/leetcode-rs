@@ -7,7 +7,7 @@ use std::fmt::Write;
 use std::fs::File;
 use std::io::BufReader;
 
-/// Dynamically extracts fields from a JSON `Value` using a dot-delimited path (e.g. "slope.confidence_interval.lower_bound")
+/// Dynamically extracts fields from a JSON `Value` using a dot-delimited path (e.g. "slope.`confidence_interval`.`lower_bound`")
 fn get_nested_value<'a>(value: &'a Value, field_path: &str) -> Option<&'a Value> {
     let mut current = value;
     for key in field_path.split('.') {
@@ -91,7 +91,7 @@ fn collect_metrics_from_single_json(
     Ok(metrics)
 }
 
-/// reference: .github/templates/metrics_template.json
+/// reference: .github/templates/`metrics_template`.json
 fn collect_metrics(metrics_config: &str) -> anyhow::Result<String> {
     let file = File::open(metrics_config)
         .with_context(|| format!("Failed to open metrics config file '{}'", metrics_config))?;

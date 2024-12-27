@@ -22,5 +22,5 @@ metrics.json
 package-lock.json
 package.json
 
-// husky
+# husky
 .husky

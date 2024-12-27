@@ -5,6 +5,9 @@ members = ["implementations/*", "utilities/bench_util", "utilities/cache_util"]
 # which aligns with Rust 2024 edition and ensures compatibility with its features
 resolver = "2"
 
+[workspace.metadata.spellcheck]
+config = "spellcheck.toml"
+
 [profile.release] # bench will use it if no [profile.bench]
 opt-level = 3
 lto = "fat"

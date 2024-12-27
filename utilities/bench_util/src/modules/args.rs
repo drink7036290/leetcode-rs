@@ -9,11 +9,11 @@ pub enum Command {
         #[arg(long, value_name = "METRICS_CONFIG_PATH")]
         metrics_config: String,
 
-        /// e.g., "qxxx_with_blabla"
+        /// e.g., `qxxx_with_blabla`
         #[arg(long, value_name = "SUB_CRATE_NAME")]
         sub_crate: String,
 
-        /// e.g., "bench_IMPL"
+        /// e.g., `bench_IMPL`
         #[arg(long, value_name = "BENCH_NAME")]
         bench: String,
     },

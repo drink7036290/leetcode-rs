@@ -1,18 +1,16 @@
 repos:
   - repo: local
     hooks:
-      # Rustfmt formatting check
       - id: rustfmt
-        name: Rustfmt
+        name: rustfmt
         language: system
         entry: rustfmt
         args: ["--edition", "2024", "--check"]
         pass_filenames: true
         files: \.rs$
 
-      # Cargo Clippy linting
-      - id: cargo-clippy
-        name: Cargo Clippy
+      - id: cargo clippy
+        name: cargo clippy
         language: system
         entry: cargo
         args:
@@ -28,27 +26,38 @@ repos:
           ]
         pass_filenames: false
 
-      # Cargo deny check
       - id: cargo-deny
-        name: Cargo Deny
+        name: cargo-deny
         language: system
-        entry: cargo
-        args: ["deny", "check"]
+        entry: cargo-deny
+        args: ["check"]
         pass_filenames: false
 
-      # Link validation
+      # link validation
       - id: lychee
-        name: Lychee
+        name: lychee
         language: system
         entry: lychee
         args: ["--no-progress", "--cache"]
 
-  # [WON'T WORK !!!]
-  #  - repo: https://github.com/lycheeverse/lychee.git
-  #    rev: v0.15.1
-  #    hooks:
-  #      - id: lychee
-  #        args: ["--no-progress", "--cache"]
+      - id: cargo-spellcheck
+        name: cargo-spellcheck
+        language: system
+        entry: bash
+        args:
+          - -c
+          - |
+            if ! cargo-spellcheck check --code 1
+            then
+                echo ''
+                echo ''
+                echo 'If this is a Rust method/type/variable name, then you should'
+                echo 'enclose it in backticks like this: `MyRustType`.'
+                echo ''
+                echo 'If this is a real word, then you can add it to spellcheck.dic'
+                exit 1
+            fi
+        pass_filenames: false
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.43.0
@@ -60,3 +69,4 @@ repos:
     hooks:
       - id: check-yaml
       - id: check-toml
+      - id: forbid-submodules

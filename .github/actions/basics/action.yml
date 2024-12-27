@@ -1,4 +1,5 @@
 name: "Basic Checks"
+description: "Installs dependencies and runs pre-commit hooks"
 
 runs:
   using: "composite"
@@ -24,14 +25,14 @@ runs:
     # ===============================================
 
     - uses: cargo-bins/cargo-binstall@main
-    - name: Install prefligit
+    - name: binstall cargo-deny lychee prefligit cargo-spellcheck
       shell: bash
       run: |
-        cargo binstall --no-confirm prefligit
+        cargo binstall --no-confirm cargo-deny lychee prefligit cargo-spellcheck
 
     - uses: ./.github/actions/elapsed-time
       with:
-        statement: "install prefligit"
+        statement: "binstall cargo-deny lychee prefligit cargo-spellcheck"
 
     # ===============================================
 
@@ -42,30 +43,6 @@ runs:
         statement: "rust-cache"
 
     # ===============================================
-
-    - name: Install cargo-deny
-      uses: ./.github/actions/install-from-tarball
-      with:
-        url: "https://github.com/EmbarkStudios/cargo-deny/releases/download/0.16.3/cargo-deny-0.16.3-x86_64-unknown-linux-musl.tar.gz"
-        executable: "cargo-deny"
-        target_path: "$CARGO_HOME/bin"
-
-    - uses: ./.github/actions/elapsed-time
-      with:
-        statement: "Install cargo-deny"
-
-    # ===============================================
-
-    - name: Install lychee
-      uses: ./.github/actions/install-from-tarball
-      with:
-        url: "https://github.com/lycheeverse/lychee/releases/download/lychee-v0.18.0/lychee-x86_64-unknown-linux-musl.tar.gz"
-        executable: "lychee"
-        target_path: "$CARGO_HOME/bin"
-
-    - uses: ./.github/actions/elapsed-time
-      with:
-        statement: "Install lychee"
 
     - name: Restore lychee cache
       uses: actions/cache@v4
