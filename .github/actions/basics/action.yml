@@ -34,7 +34,7 @@ runs:
       shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang libclang-dev
+        sudo apt-get install -y clang libclang-dev llvm
 
     - name: LIBCLANG_PATH for cargo-spellcheck
       shell: bash
