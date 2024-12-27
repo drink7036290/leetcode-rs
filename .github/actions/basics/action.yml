@@ -30,6 +30,16 @@ runs:
       run: |
         cargo binstall --no-confirm cargo-deny lychee prefligit cargo-spellcheck
 
+    - name: dependencies for cargo-spellcheck
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang libclang-dev
+
+    - name: LIBCLANG_PATH for cargo-spellcheck
+      shell: bash
+      run: echo "LIBCLANG_PATH=/usr/lib/llvm-14/lib" >> $GITHUB_ENV
+
     - uses: ./.github/actions/elapsed-time
       with:
         statement: "binstall cargo-deny lychee prefligit cargo-spellcheck"
