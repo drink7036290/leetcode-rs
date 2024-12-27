@@ -14,6 +14,10 @@ permissions:
 env:
   rust_nightly: nightly-2024-12-02
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   basics:
     runs-on: ubuntu-latest
