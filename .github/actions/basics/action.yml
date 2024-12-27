@@ -27,7 +27,7 @@ runs:
     - name: Install prefligit
       shell: bash
       run: |
-        cargo binstall prefligit
+        cargo binstall --no-confirm prefligit
 
     - uses: ./.github/actions/elapsed-time
       with:
@@ -95,7 +95,7 @@ runs:
     - name: Run prefligit
       shell: bash
       run: |
-        preflight run --all-files
+        prefligit run --all-files
 
     - uses: ./.github/actions/elapsed-time
       with:
