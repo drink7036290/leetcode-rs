@@ -25,6 +25,7 @@ runs:
 
     - uses: cargo-bins/cargo-binstall@main
     - name: Install prefligit
+      shell: bash
       run: |
         cargo binstall prefligit
 
@@ -80,6 +81,7 @@ runs:
     # ===============================================
 
     - name: Run pre-commit
+      shell: bash
       run: |
         time python3 -m venv venv
         time source venv/bin/activate
@@ -91,6 +93,7 @@ runs:
         statement: "pre-commit"
 
     - name: Run prefligit
+      shell: bash
       run: |
         preflight run --all-files
 
