@@ -10,6 +10,7 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: write
 
 env:
   rust_nightly: nightly-2024-12-02
@@ -19,6 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: reviewdog/action-yamllint@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+
       - uses: ./.github/actions/basics
         with:
           rust_nightly: ${{ env.rust_nightly }}
