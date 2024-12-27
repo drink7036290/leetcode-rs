@@ -12,6 +12,9 @@ env:
   rust_stable: stable
   rust_nightly: nightly-2024-12-02
 
+permissions:
+  contents: read
+
 jobs:
   define-matrix:
     needs:

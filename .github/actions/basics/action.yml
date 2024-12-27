@@ -9,6 +9,8 @@ runs:
       with:
         statement: "actions/checkout"
 
+    # ===============================================
+
     - name: Install Rust nightly
       uses: dtolnay/rust-toolchain@stable
       with:
@@ -19,17 +21,23 @@ runs:
       with:
         statement: "rust-toolchain"
 
+    # ===============================================
+
     - uses: taiki-e/install-action@prefligit
 
     - uses: ./.github/actions/elapsed-time
       with:
         statement: "install prefligit"
 
+    # ===============================================
+
     - uses: Swatinem/rust-cache@v2
 
     - uses: ./.github/actions/elapsed-time
       with:
         statement: "rust-cache"
+
+    # ===============================================
 
     - name: Install cargo-deny
       uses: ./.github/actions/install-from-tarball
@@ -41,6 +49,8 @@ runs:
     - uses: ./.github/actions/elapsed-time
       with:
         statement: "Install cargo-deny"
+
+    # ===============================================
 
     - name: Install lychee
       uses: ./.github/actions/install-from-tarball
@@ -64,6 +74,8 @@ runs:
       with:
         statement: "Restore lychee cache"
 
+    # ===============================================
+
     - name: Run pre-commit
       run: |
         time python3 -m venv venv
@@ -76,7 +88,7 @@ runs:
       with:
         statement: "pre-commit"
 
-    -name: Run prefligit
+    - name: Run prefligit
       run: |
         preflight run --all-files
       shell: bash
@@ -84,6 +96,8 @@ runs:
     - uses: ./.github/actions/elapsed-time
       with:
         statement: "prefligit"
+
+# ===============================================
 
 inputs:
   rust_nightly:
