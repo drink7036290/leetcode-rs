@@ -1,5 +1,9 @@
 name: "Basic Checks"
 
+defaults:
+  run:
+    shell: bash
+
 runs:
   using: "composite"
   steps:
@@ -85,7 +89,6 @@ runs:
         time source venv/bin/activate
         time pip -q install pre-commit
         time pre-commit run --all-files
-      shell: bash
 
     - uses: ./.github/actions/elapsed-time
       with:
@@ -94,7 +97,6 @@ runs:
     - name: Run prefligit
       run: |
         preflight run --all-files
-      shell: bash
 
     - uses: ./.github/actions/elapsed-time
       with:
