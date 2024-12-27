@@ -11,10 +11,6 @@ inputs:
     required: false
     default: "generic"
 
-outputs:
-  delta:
-    description: "Time delta in seconds since last call"
-
 runs:
   using: "composite"
   steps:
@@ -41,11 +37,9 @@ runs:
           delta=$(( current_time - last_time ))
         fi
 
-        # 4) Print message
-        echo "Elapsed time for ${{ inputs.statement }}: $delta seconds"
+        # 4) Append the result to a "report" file
+        # so we can show them all at once at the end.
+        echo "${{ inputs.statement }}: ${delta}" >> .elapsed_report
 
-        # 5) Expose as output (optional)
-        echo "delta=$delta" >> "$GITHUB_OUTPUT"
-
-        # 6) Write new timestamp
+        # 5) Write new timestamp
         echo "$current_time" > "$FILE"
