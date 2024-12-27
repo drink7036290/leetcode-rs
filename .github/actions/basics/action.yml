@@ -19,6 +19,12 @@ runs:
       with:
         statement: "rust-toolchain"
 
+    - uses: taiki-e/install-action@prefligit
+
+    - uses: ./.github/actions/elapsed-time
+      with:
+        statement: "install prefligit"
+
     - uses: Swatinem/rust-cache@v2
 
     - uses: ./.github/actions/elapsed-time
@@ -69,6 +75,15 @@ runs:
     - uses: ./.github/actions/elapsed-time
       with:
         statement: "pre-commit"
+
+    -name: Run prefligit
+      run: |
+        preflight run --all-files
+      shell: bash
+
+    - uses: ./.github/actions/elapsed-time
+      with:
+        statement: "prefligit"
 
 inputs:
   rust_nightly:
