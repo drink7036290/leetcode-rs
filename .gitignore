@@ -16,3 +16,11 @@ metrics.json
 
 # lychee
 .lycheecache
+
+# npm
+**/node_modules
+package-lock.json
+package.json
+
+// husky
+.husky

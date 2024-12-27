@@ -1,0 +1,27 @@
+extends:
+  - "@commitlint/config-conventional"
+
+rules:
+  # lowercase on the "type".
+  type-case: [1, "always", "lower-case"]
+
+  # lowercase on the subject (the short description).
+  subject-case: [1, "always", "lower-case"]
+
+  # Disallow trailing period in the subject line.
+  subject-full-stop: [2, "never", "."]
+
+  # Limit the full header (type + subject) to 72 chars max.
+  header-max-length: [2, "always", 72]
+
+  # Require a blank line after the header.
+  body-leading-blank: [2, "always"]
+
+  # Limit body lines to 72 chars.
+  body-max-line-length: [2, "always", 72]
+
+  # Require a blank line before the footer (e.g., “Fixes: #123”).
+  footer-leading-blank: [2, "always"]
+
+  # Limit footer lines to 72 chars as well.
+  footer-max-line-length: [2, "always", 72]
