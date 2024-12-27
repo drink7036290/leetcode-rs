@@ -105,6 +105,7 @@ runs:
 
     - name: Show All Elapsed Times
       if: always()
+      shell: bash
       run: |
         echo "==== Elapsed Times in seconds ===="
         cat .elapsed_report || echo "(No report found)"
