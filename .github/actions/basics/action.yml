@@ -72,6 +72,15 @@ runs:
 
     # ===============================================
 
+    - name: Run prefligit
+      shell: bash
+      run: |
+        prefligit -v run --all-files
+
+    - uses: ./.github/actions/elapsed-time
+      with:
+        statement: "prefligit"
+
     - name: Run pre-commit
       shell: bash
       run: |
@@ -83,15 +92,6 @@ runs:
     - uses: ./.github/actions/elapsed-time
       with:
         statement: "pre-commit"
-
-    - name: Run prefligit
-      shell: bash
-      run: |
-        prefligit run --all-files
-
-    - uses: ./.github/actions/elapsed-time
-      with:
-        statement: "prefligit"
 
     # ===============================================
 
