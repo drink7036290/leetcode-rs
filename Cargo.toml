@@ -1,5 +1,5 @@
 [workspace]
-members = ["implementations/*", "utilities/bench_util", "utilities/cache_util"]
+members = ["implementations/*", "utilities/bench_util", "utilities/cache_util", "utilities/checker_util"]
 
 # tells Cargo to use the newer dependency resolver,
 # which aligns with Rust 2024 edition and ensures compatibility with its features

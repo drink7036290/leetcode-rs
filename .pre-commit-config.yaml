@@ -112,6 +112,18 @@ repos:
         pass_filenames: true
         types_or: [toml]
 
+      - id: custom-yaml-check
+        name: custom Rust YAML checker
+        language: system
+        entry: bash
+        args:
+          - -c
+          - |
+            cargo run --bin checker_util -- "$@"
+          - ""
+        pass_filenames: true
+        types: [yaml]
+
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.43.0
     hooks:
@@ -120,5 +132,4 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
-      - id: check-yaml
       - id: forbid-submodules

@@ -1,0 +1,8 @@
+[package]
+name = "checker_util"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+
+[dependencies]
+serde_yaml = "0.9.34"
