@@ -34,7 +34,7 @@ runs:
       #  cargo binstall --no-confirm cargo-deny lychee prefligit
       uses: taiki-e/install-action@v2
       with:
-        tool: cargo-deny lychee prefligit
+        tool: cargo-deny,lychee,prefligit
 
     - uses: ./.github/actions/elapsed-time
       with:
