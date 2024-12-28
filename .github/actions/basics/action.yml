@@ -24,25 +24,24 @@ runs:
 
     # ===============================================
 
-    - uses: cargo-bins/cargo-binstall@main
-    - name: binstall cargo-deny lychee prefligit cargo-spellcheck
-      shell: bash
-      run: |
-        cargo binstall --no-confirm cargo-deny lychee prefligit cargo-spellcheck
-
     - name: dependencies for cargo-spellcheck
       shell: bash
       run: |
-        sudo apt-get update
-        sudo apt-get install -y clang libclang-dev llvm
+        sudo apt install -y clang libclang-dev llvm
 
     - name: LIBCLANG_PATH for cargo-spellcheck
       shell: bash
-      run: echo "LIBCLANG_PATH=/usr/lib/llvm-14/lib" >> $GITHUB_ENV
+      run: echo "LIBCLANG_PATH=/usr/lib/llvm-18/lib" >> $GITHUB_ENV
+
+    - uses: cargo-bins/cargo-binstall@main
+    - name: install cargo-deny lychee prefligit cargo-spellcheck
+      shell: bash
+      run: |
+        cargo binstall --locked --no-confirm cargo-deny lychee prefligit cargo-spellcheck
 
     - uses: ./.github/actions/elapsed-time
       with:
-        statement: "binstall cargo-deny lychee prefligit cargo-spellcheck"
+        statement: "install cargo-deny lychee prefligit cargo-spellcheck"
 
     # ===============================================
 
