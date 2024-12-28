@@ -49,11 +49,11 @@ repos:
           - |
             (
               # Remove the first and last lines
-              sed '1d; $d' spellcheck.dic | LC_ALL=en_US.UTF8 sort -uc
+              sed '1d; $d' spellcheck.dic | LC_ALL=C sort -uc
             ) || {
               echo "Dictionary is not in sorted order. Correct order is:"
               # Show the correct order
-              LC_ALL=en_US.UTF8 sort -u <(sed '1d; $d' spellcheck.dic)
+              LC_ALL=C sort -u <(sed '1d; $d' spellcheck.dic)
               false
             }
         pass_filenames: false
