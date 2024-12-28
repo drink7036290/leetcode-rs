@@ -8,7 +8,7 @@ use q460_lfu_cache::vec_hashmap::LFUCache as LFUCache_vec_hashmap;
 use q460_lfu_cache::vec_hashmap::LFUEvictionCache as LFUEvictionCache_vec_hashmap;
 
 #[rstest]
-#[case(vec!["LFUCache", "put", "put", "get", "put", "get", "get", "put", "get", "get", "get"], 
+#[case(vec!["LFUCache", "put", "put", "get", "put", "get", "get", "put", "get", "get", "get"],
 vec![vec![2], vec![1, 1], vec![2, 2], vec![1], vec![3, 3], vec![2], vec![3], vec![4, 4], vec![1], vec![3], vec![4]],
 vec![None, None, None, Some(1), None, Some(-1), Some(3), None, Some(-1), Some(3), Some(4)])]
 #[case(vec!["LFUCache","put","put","put","put","get","get","get","get","put","get","get","get","get","get"],

@@ -28,14 +28,15 @@ runs:
 
     # ===============================================
 
-    - name: install lychee prefligit
+    - name: install lychee prefligit ripgrep taplo-cli
       shell: bash
       run: |
-        cargo binstall --no-confirm lychee prefligit
+        cargo binstall --no-confirm lychee prefligit ripgrep
+        cargo binstall --no-confirm --locked taplo-cli
 
     - uses: ./.github/actions/elapsed-time
       with:
-        statement: "install lychee prefligit"
+        statement: "install lychee prefligit ripgrep taplo-cli"
 
     # ===============================================
 

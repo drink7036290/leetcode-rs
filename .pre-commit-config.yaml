@@ -35,10 +35,28 @@ repos:
 
       # link validation
       - id: lychee
-        name: lychee
+        name: link validation
         language: system
         entry: lychee
         args: ["--no-progress", "--cache"]
+
+      - id: sorted-dictionary-check
+        name: make sure dictionary words are sorted and unique
+        language: system
+        entry: bash
+        args:
+          - -c
+          - |
+            (
+              # Remove the first and last lines
+              sed '1d; $d' spellcheck.dic | LC_ALL=en_US.UTF8 sort -uc
+            ) || {
+              echo "Dictionary is not in sorted order. Correct order is:"
+              # Show the correct order
+              LC_ALL=en_US.UTF8 sort -u <(sed '1d; $d' spellcheck.dic)
+              false
+            }
+        pass_filenames: false
 
       - id: cargo-spellcheck
         name: cargo-spellcheck
@@ -59,6 +77,41 @@ repos:
             fi
         pass_filenames: false
 
+      - id: detect-trailing-whitespace-rg
+        name: detect trailing whitespace
+        language: system
+        entry: bash
+        args:
+          - -c
+          - |
+            # We'll search for trailing whitespace with a pattern like `[ \t]+$`
+            # `\s$` is okay too, but `[ \t]+$` can be more explicit.
+            # By default, rg respects .gitignore, so node_modules is skipped if it's ignored.
+            if rg --line-number --no-heading '[ \t]+$' .
+            then
+                echo ''
+                echo 'Please remove trailing whitespace from these lines.'
+                exit 1
+            fi
+          # We don't pass filenames in pre-commit, because we want to search the entire repo
+        pass_filenames: false
+
+      - id: taplo-check
+        name: taplo TOML check
+        language: system
+        entry: bash
+        args:
+          - -c
+          - |
+            # Pre-commit passes a list of changed .toml files
+            for file in "$@"; do
+                echo "Checking TOML: $file"
+                taplo check "$file" || exit 1
+            done
+          - ""
+        pass_filenames: true
+        types_or: [toml]
+
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.43.0
     hooks:
@@ -68,5 +121,4 @@ repos:
     rev: v5.0.0
     hooks:
       - id: check-yaml
-      - id: check-toml
       - id: forbid-submodules
