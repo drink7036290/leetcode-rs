@@ -1,4 +1,5 @@
 name: "Basic Checks"
+description: "Installs dependencies and runs pre-commit hooks"
 
 runs:
   using: "composite"
@@ -24,14 +25,29 @@ runs:
     # ===============================================
 
     - uses: cargo-bins/cargo-binstall@main
-    - name: Install prefligit
+
+    # ===============================================
+
+    - name: install lychee prefligit ripgrep taplo-cli
       shell: bash
       run: |
-        cargo binstall --no-confirm prefligit
+        cargo binstall --no-confirm lychee prefligit ripgrep
+        cargo binstall --no-confirm --locked taplo-cli
 
     - uses: ./.github/actions/elapsed-time
       with:
-        statement: "install prefligit"
+        statement: "install lychee prefligit ripgrep taplo-cli"
+
+    # ===============================================
+
+    - name: install cargo-deny,cargo-spellcheck
+      uses: taiki-e/install-action@v2
+      with:
+        tool: cargo-deny,cargo-spellcheck
+
+    - uses: ./.github/actions/elapsed-time
+      with:
+        statement: "install cargo-deny,cargo-spellcheck"
 
     # ===============================================
 
@@ -42,30 +58,6 @@ runs:
         statement: "rust-cache"
 
     # ===============================================
-
-    - name: Install cargo-deny
-      uses: ./.github/actions/install-from-tarball
-      with:
-        url: "https://github.com/EmbarkStudios/cargo-deny/releases/download/0.16.3/cargo-deny-0.16.3-x86_64-unknown-linux-musl.tar.gz"
-        executable: "cargo-deny"
-        target_path: "$CARGO_HOME/bin"
-
-    - uses: ./.github/actions/elapsed-time
-      with:
-        statement: "Install cargo-deny"
-
-    # ===============================================
-
-    - name: Install lychee
-      uses: ./.github/actions/install-from-tarball
-      with:
-        url: "https://github.com/lycheeverse/lychee/releases/download/lychee-v0.18.0/lychee-x86_64-unknown-linux-musl.tar.gz"
-        executable: "lychee"
-        target_path: "$CARGO_HOME/bin"
-
-    - uses: ./.github/actions/elapsed-time
-      with:
-        statement: "Install lychee"
 
     - name: Restore lychee cache
       uses: actions/cache@v4
@@ -80,6 +72,15 @@ runs:
 
     # ===============================================
 
+    - name: Run prefligit
+      shell: bash
+      run: |
+        prefligit -v run --all-files
+
+    - uses: ./.github/actions/elapsed-time
+      with:
+        statement: "prefligit"
+
     - name: Run pre-commit
       shell: bash
       run: |
@@ -91,15 +92,6 @@ runs:
     - uses: ./.github/actions/elapsed-time
       with:
         statement: "pre-commit"
-
-    - name: Run prefligit
-      shell: bash
-      run: |
-        prefligit run --all-files
-
-    - uses: ./.github/actions/elapsed-time
-      with:
-        statement: "prefligit"
 
     # ===============================================
 

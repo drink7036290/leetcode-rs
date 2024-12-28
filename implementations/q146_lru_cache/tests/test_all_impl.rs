@@ -8,7 +8,7 @@ use q146_lru_cache::vec_hashmap::LRUCache as LRUCache_vec_hashmap;
 use q146_lru_cache::vec_hashmap::LRUEvictionCache as LRUEvictionCache_vec_hashmap;
 
 #[rstest]
-#[case(vec!["LRUCache", "put", "put", "get", "put", "get", "put", "get", "get", "get"], 
+#[case(vec!["LRUCache", "put", "put", "get", "put", "get", "put", "get", "get", "get"],
 vec![vec![2], vec![1, 1], vec![2, 2], vec![1], vec![3, 3], vec![2], vec![4, 4], vec![1], vec![3], vec![4]],
 vec![None, None, None, Some(1), None, Some(-1), None, Some(-1), Some(3), Some(4)])]
 fn test_all_impl(

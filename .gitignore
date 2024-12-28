@@ -22,5 +22,8 @@ metrics.json
 package-lock.json
 package.json
 
-// husky
+# python
+**/venv
+
+# husky
 .husky
