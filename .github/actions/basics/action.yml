@@ -28,28 +28,25 @@ runs:
 
     # ===============================================
 
-    - name: install cargo-deny lychee prefligit
-      #shell: bash
-      #run: |
-      #  cargo binstall --no-confirm cargo-deny lychee prefligit
-      uses: taiki-e/install-action@v2
-      with:
-        tool: cargo-deny,lychee,prefligit
+    - name: install lychee prefligit
+      shell: bash
+      run: |
+        cargo binstall --no-confirm lychee prefligit
 
     - uses: ./.github/actions/elapsed-time
       with:
-        statement: "install cargo-deny lychee prefligit"
+        statement: "install lychee prefligit"
 
     # ===============================================
 
-    - name: install cargo-spellcheck
+    - name: install cargo-deny,cargo-spellcheck
       uses: taiki-e/install-action@v2
       with:
-        tool: cargo-spellcheck
+        tool: cargo-deny,cargo-spellcheck
 
     - uses: ./.github/actions/elapsed-time
       with:
-        statement: "install cargo-spellcheck"
+        statement: "install cargo-deny,cargo-spellcheck"
 
     # ===============================================
 
