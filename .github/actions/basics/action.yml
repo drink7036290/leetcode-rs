@@ -24,10 +24,29 @@ runs:
 
     # ===============================================
 
+    - uses: cargo-bins/cargo-binstall@main
+
+    # ===============================================
+
+    - name: install cargo-deny lychee prefligit
+      shell: bash
+      run: |
+        cargo binstall --no-confirm cargo-deny lychee prefligit
+
+    - uses: ./.github/actions/elapsed-time
+      with:
+        statement: "install cargo-deny lychee prefligit"
+
+    # ===============================================
+
     - name: dependencies for cargo-spellcheck
       shell: bash
       run: |
+        sudo apt update
         sudo apt install -y clang libclang-dev llvm
+        apt-cache policy clang libclang-dev llvm
+        dpkg -l | grep clang
+        dpkg -l | grep llvm
 
     - name: Find and set LIBCLANG_PATH
       shell: bash
@@ -39,15 +58,14 @@ runs:
         # Export it as an environment variable so subsequent steps can use it
         echo "LIBCLANG_PATH=$clang_lib_dir" >> $GITHUB_ENV
 
-    - uses: cargo-bins/cargo-binstall@main
-    - name: install cargo-deny lychee prefligit cargo-spellcheck
+    - name: install cargo-spellcheck
       shell: bash
       run: |
-        cargo binstall --locked --no-confirm cargo-deny lychee prefligit cargo-spellcheck
+        cargo binstall --no-confirm cargo-spellcheck # --locked caused yanked warnings
 
     - uses: ./.github/actions/elapsed-time
       with:
-        statement: "install cargo-deny lychee prefligit cargo-spellcheck"
+        statement: "install cargo-spellcheck"
 
     # ===============================================
 
