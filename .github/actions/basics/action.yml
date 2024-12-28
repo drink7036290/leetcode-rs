@@ -29,9 +29,15 @@ runs:
       run: |
         sudo apt install -y clang libclang-dev llvm
 
-    - name: LIBCLANG_PATH for cargo-spellcheck
+    - name: Find and set LIBCLANG_PATH
       shell: bash
-      run: echo "LIBCLANG_PATH=/usr/lib/llvm-18/lib" >> $GITHUB_ENV
+      run: |
+        # Find the highest versioned LLVM directory (e.g., /usr/lib/llvm-14, /usr/lib/llvm-17, /usr/lib/llvm-18, etc.)
+        clang_lib_dir=$(find /usr/lib/llvm-* -maxdepth 0 -type d 2>/dev/null | sort -V | tail -n 1)/lib
+        
+        echo "Detected clang_lib_dir: $clang_lib_dir"
+        # Export it as an environment variable so subsequent steps can use it
+        echo "LIBCLANG_PATH=$clang_lib_dir" >> $GITHUB_ENV
 
     - uses: cargo-bins/cargo-binstall@main
     - name: install cargo-deny lychee prefligit cargo-spellcheck
