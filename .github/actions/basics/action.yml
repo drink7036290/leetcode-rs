@@ -71,9 +71,12 @@ runs:
         echo "LIBCLANG_PATH=$clang_lib_dir" >> $GITHUB_ENV
 
     - name: install cargo-spellcheck
-      shell: bash
-      run: |
-        cargo binstall --no-confirm cargo-spellcheck # --locked caused yanked warnings
+      #shell: bash
+      #run: |
+      #  cargo binstall --no-confirm cargo-spellcheck # --locked caused yanked warnings
+      uses: taiki-e/install-action@v2
+      with:
+        tool: cargo-spellcheck
 
     - uses: ./.github/actions/elapsed-time
       with:
