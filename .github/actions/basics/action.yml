@@ -39,44 +39,44 @@ runs:
 
     # ===============================================
 
-    - name: dependencies for cargo-spellcheck
-      shell: bash
-      run: |
-        sudo apt update
-        sudo apt install -y clang libclang-dev llvm
-        apt-cache policy clang libclang-dev llvm
-        dpkg -l | grep clang
-        dpkg -l | grep llvm
-
-    - name: Find and set LIBCLANG_PATH
-      shell: bash
-      run: |
-        # Find the highest versioned LLVM directory (e.g., /usr/lib/llvm-14, /usr/lib/llvm-17, /usr/lib/llvm-18, etc.)
-        # valid shared libraries matching: ['libclang.so', 'libclang-*.so']
-
-        clang_lib_so="$(
-          find /usr/lib/llvm-* \
-            \( -type f -o -type l \) \
-            \( -name 'libclang.so' -o -name 'libclang-*.so' \) \
-            2>/dev/null \
-          | sort -V \
-          | tail -n 1
-        )"
-        echo "Detected clang_lib_so: $clang_lib_so"
-      
-        clang_lib_dir="$(dirname "$clang_lib_so")"
-        echo "Detected clang_lib_dir: $clang_lib_dir"
-
-        # Export it as an environment variable so subsequent steps can use it
-        echo "LIBCLANG_PATH=$clang_lib_dir" >> $GITHUB_ENV
+#    - name: dependencies for cargo-spellcheck
+#      shell: bash
+#      run: |
+#        sudo apt update
+#        sudo apt install -y clang libclang-dev llvm
+#        apt-cache policy clang libclang-dev llvm
+#        dpkg -l | grep clang
+#        dpkg -l | grep llvm
+#
+#    - name: Find and set LIBCLANG_PATH
+#      shell: bash
+#      run: |
+#        # Find the highest versioned LLVM directory (e.g., /usr/lib/llvm-14, /usr/lib/llvm-17, /usr/lib/llvm-18, etc.)
+#        # valid shared libraries matching: ['libclang.so', 'libclang-*.so']
+#
+#        clang_lib_so="$(
+#          find /usr/lib/llvm-* \
+#            \( -type f -o -type l \) \
+#            \( -name 'libclang.so' -o -name 'libclang-*.so' \) \
+#            2>/dev/null \
+#          | sort -V \
+#          | tail -n 1
+#        )"
+#        echo "Detected clang_lib_so: $clang_lib_so"
+#      
+#        clang_lib_dir="$(dirname "$clang_lib_so")"
+#        echo "Detected clang_lib_dir: $clang_lib_dir"
+#
+#        # Export it as an environment variable so subsequent steps can use it
+#        echo "LIBCLANG_PATH=$clang_lib_dir" >> $GITHUB_ENV
 
     - name: install cargo-spellcheck
       #shell: bash
       #run: |
-      #  cargo binstall --no-confirm cargo-spellcheck # --locked caused yanked warnings
+      #  cargo binstall --no-confirm cargo-spellcheck # --locked caused yanked warnings ### elapsed 217 secs
       uses: taiki-e/install-action@v2
       with:
-        tool: cargo-spellcheck
+        tool: cargo-spellcheck ### elapsed 15 secs
 
     - uses: ./.github/actions/elapsed-time
       with:
