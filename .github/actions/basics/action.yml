@@ -59,6 +59,18 @@ runs:
 
     # ===============================================
 
+    - name: Install git-secrets
+      shell: bash
+      run: |
+        sudo apt-get update && sudo apt-get install -y git-secrets
+        git-secrets --register-aws
+
+    - uses: ./.github/actions/elapsed-time
+      with:
+        statement: "Install git-secrets"
+
+    # ===============================================
+
     - name: restore lychee cache
       uses: actions/cache@v4
       with:
