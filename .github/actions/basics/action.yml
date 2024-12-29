@@ -12,7 +12,7 @@ runs:
 
     # ===============================================
 
-    - name: Install Rust nightly
+    - name: install Rust nightly
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: ${{ inputs.rust_nightly }}
@@ -59,7 +59,7 @@ runs:
 
     # ===============================================
 
-    - name: Restore lychee cache
+    - name: restore lychee cache
       uses: actions/cache@v4
       with:
         path: .lycheecache
@@ -72,16 +72,20 @@ runs:
 
     # ===============================================
 
-    - name: Run prefligit
+    - name: run prefligit
+      env:
+        GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
       shell: bash
       run: |
         prefligit -v run --all-files
 
     - uses: ./.github/actions/elapsed-time
       with:
-        statement: "prefligit"
+        statement: "run prefligit"
 
-    - name: Run pre-commit
+    - name: run pre-commit
+      env:
+        GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
       shell: bash
       run: |
         time python3 -m venv venv
@@ -91,11 +95,39 @@ runs:
 
     - uses: ./.github/actions/elapsed-time
       with:
-        statement: "pre-commit"
+        statement: "run pre-commit"
 
     # ===============================================
 
-    - name: Show All Elapsed Times
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "latest"
+
+    - uses: ./.github/actions/elapsed-time
+      with:
+        statement: "install Node.js"
+
+    - name: install commitlint
+      shell: bash
+      run: |
+        npm install @commitlint/{cli,config-conventional}
+
+    - uses: ./.github/actions/elapsed-time
+      with:
+        statement: "install commitlint"
+
+    - name: run commitlint
+      shell: bash
+      run: |
+        npx commitlint --last --verbose
+
+    - uses: ./.github/actions/elapsed-time
+      with:
+        statement: "run commitlint"
+
+    # ===============================================
+
+    - name: show All Elapsed Times
       if: always()
       shell: bash
       run: |

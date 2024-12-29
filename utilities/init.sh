@@ -41,3 +41,8 @@ LIBCLANG_PATH=$clang_lib_dir cargo binstall --no-confirm cargo-spellcheck # --lo
 wget https://github.com/drahnr/cargo-spellcheck/releases/download/v0.14.0/cargo-spellcheck-v0.14.0-x86_64-unknown-linux-gnu
 chmod +x cargo-spellcheck-v0.14.0-x86_64-unknown-linux-gnu
 mv cargo-spellcheck-v0.14.0-x86_64-unknown-linux-gnu cargo-spellcheck
+
+
+# install commitlint
+apt install -y nodejs npm
+npm install --save-dev @commitlint/{cli,config-conventional}
