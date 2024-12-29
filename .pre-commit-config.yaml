@@ -40,6 +40,28 @@ repos:
         entry: lychee
         args: ["--no-progress", "--cache"]
 
+      - id: commitlint-conditional
+        name: commitlint (conditional for PR vs local/push)
+        language: system
+        entry: bash
+        pass_filenames: false
+        args:
+          - -c
+          - |
+            #!/usr/bin/env bash
+            set -euo pipefail
+
+            # If GITHUB_BASE_SHA is empty (local dev or push), just check the last commit
+            # Otherwise, assume we're in a PR context and lint from GITHUB_BASE_SHA
+            if [ -z "${GITHUB_BASE_SHA:-}" ]; then
+              echo "No GITHUB_BASE_SHA set. Checking only the last commit..."
+              npx commitlint --last --verbose
+            else
+              echo "Detected GITHUB_BASE_SHA=${GITHUB_BASE_SHA}. Checking all commits since that SHA..."
+              npx commitlint --from "${GITHUB_BASE_SHA}"
+            fi
+        # pass_filenames: false is important, as commitlint doesn't handle file paths.
+
       - id: sorted-dictionary-check
         name: make sure dictionary words are sorted and unique
         language: system
