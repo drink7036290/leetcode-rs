@@ -93,7 +93,7 @@ runs:
 
     - name: Run prefligit
       env:
-        GITHUB_BASE_SHA: ${{ inputs.GITHUB_BASE_SHA }}
+        GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
       shell: bash
       run: |
         prefligit -v run --all-files
@@ -104,7 +104,7 @@ runs:
 
     - name: Run pre-commit
       env:
-        GITHUB_BASE_SHA: ${{ inputs.GITHUB_BASE_SHA }}
+        GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
       shell: bash
       run: |
         time python3 -m venv venv
@@ -130,7 +130,3 @@ inputs:
     description: "Rust nightly toolchain version"
     required: false
     default: "nightly"
-  GITHUB_BASE_SHA:
-    description: "The base SHA of the pull request, if any"
-    required: false
-    default: ""
