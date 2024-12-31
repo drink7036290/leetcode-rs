@@ -10,10 +10,6 @@ runs:
       with:
         statement: "actions/checkout"
 
-    - name: Add Cargo bin to PATH
-      shell: bash
-      run: echo "${{ env.CARGO_HOME }}/bin" >> $GITHUB_PATH
-
     # ===============================================
 
     - name: install Rust nightly
@@ -43,8 +39,8 @@ runs:
     - name: install lychee prefligit ripgrep taplo-cli
       shell: bash
       run: |
-        cargo binstall --force --no-confirm lychee prefligit ripgrep
-        cargo binstall --force --no-confirm --locked taplo-cli
+        cargo binstall --no-confirm lychee prefligit ripgrep
+        cargo binstall --no-confirm --locked taplo-cli
 
     - name: Debug installed binaries
       shell: bash
