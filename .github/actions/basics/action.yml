@@ -10,6 +10,10 @@ runs:
       with:
         statement: "actions/checkout"
 
+    - name: Add Cargo bin to PATH
+      shell: bash
+      run: echo "${{ env.CARGO_HOME }}/bin" >> $GITHUB_PATH
+
     # ===============================================
 
     - name: install Rust nightly
@@ -42,6 +46,19 @@ runs:
         cargo binstall --no-confirm lychee prefligit ripgrep
         cargo binstall --no-confirm --locked taplo-cli
 
+    - name: Debug cargo bin path
+      shell: bash
+      run: |
+        echo "PATH is: $PATH"
+        echo "CARGO_HOME is: $CARGO_HOME"
+        echo "Contents of $CARGO_HOME/bin:"
+        ls -l "$CARGO_HOME/bin" || echo "$CARGO_HOME/bin does not exist."
+        echo "Using ripgrep to find any prefligit files in $CARGO_HOME:"
+        rg prefligit "$CARGO_HOME" || echo "No prefligit found in $CARGO_HOME"
+        
+        # Finally, try to run prefligit
+        prefligit --version
+
     - uses: ./.github/actions/elapsed-time
       with:
         statement: "install lychee prefligit ripgrep taplo-cli"
@@ -71,10 +88,6 @@ runs:
         statement: "Restore lychee cache"
 
     # ===============================================
-
-    - name: Add Cargo bin to PATH
-      shell: bash
-      run: echo "${{ env.CARGO_HOME }}/bin" >> $GITHUB_PATH
 
     - name: run prefligit
       env:
