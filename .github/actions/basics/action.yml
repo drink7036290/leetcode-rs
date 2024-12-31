@@ -24,6 +24,14 @@ runs:
 
     # ===============================================
 
+    - uses: Swatinem/rust-cache@v2
+
+    - uses: ./.github/actions/elapsed-time
+      with:
+        statement: "rust-cache"
+
+    # ===============================================
+
     - uses: cargo-bins/cargo-binstall@main
 
     # ===============================================
@@ -48,14 +56,6 @@ runs:
     - uses: ./.github/actions/elapsed-time
       with:
         statement: "install cargo-deny,cargo-spellcheck"
-
-    # ===============================================
-
-    - uses: Swatinem/rust-cache@v2
-
-    - uses: ./.github/actions/elapsed-time
-      with:
-        statement: "rust-cache"
 
     # ===============================================
 
