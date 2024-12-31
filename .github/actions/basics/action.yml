@@ -46,18 +46,39 @@ runs:
         cargo binstall --no-confirm lychee prefligit ripgrep
         cargo binstall --no-confirm --locked taplo-cli
 
-    - name: Debug cargo bin path
+    - name: Debug installed binaries
       shell: bash
       run: |
         echo "PATH is: $PATH"
         echo "CARGO_HOME is: $CARGO_HOME"
-        echo "Contents of $CARGO_HOME/bin:"
-        ls -l "$CARGO_HOME/bin" || echo "$CARGO_HOME/bin does not exist."
-        echo "Using ripgrep to find any prefligit files in $CARGO_HOME:"
-        rg prefligit "$CARGO_HOME" || echo "No prefligit found in $CARGO_HOME"
-        
-        # Finally, try to run prefligit
-        prefligit --version
+
+        echo
+        echo "==== Searching each PATH directory for 'prefligit' or 'rg' ===="
+        IFS=':' read -ra PATH_ARRAY <<< "$PATH"
+        for dir in "${PATH_ARRAY[@]}"; do
+          echo "-> Checking $dir"
+          # Only list if directory actually exists (some paths may not exist)
+          if [ -d "$dir" ]; then
+            ls -1 "$dir" | grep -E '^(prefligit|rg)$' || true
+          else
+            echo "   (Not a directory)"
+          fi
+        done
+
+        echo
+        echo "==== Checking 'which' output for 'prefligit' or 'rg' ===="
+        which prefligit || echo "'prefligit' not found by 'which'"
+        which rg || echo "'rg' not found by 'which'"
+
+        echo
+        echo "==== Brute-force searching /home/runner for 'prefligit' and 'rg' ===="
+        # Use 'find' instead of 'rg', since 'rg' is missing
+        echo "Searching for prefligit..."
+        find /home/runner -name prefligit 2>/dev/null || echo "No prefligit found."
+
+        echo
+        echo "Searching for rg..."
+        find /home/runner -name rg 2>/dev/null || echo "No rg found."
 
     - uses: ./.github/actions/elapsed-time
       with:
