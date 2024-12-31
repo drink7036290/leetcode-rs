@@ -43,8 +43,8 @@ runs:
     - name: install lychee prefligit ripgrep taplo-cli
       shell: bash
       run: |
-        cargo binstall --no-confirm lychee prefligit ripgrep
-        cargo binstall --no-confirm --locked taplo-cli
+        cargo binstall --force --no-confirm lychee prefligit ripgrep
+        cargo binstall --force --no-confirm --locked taplo-cli
 
     - name: Debug installed binaries
       shell: bash
