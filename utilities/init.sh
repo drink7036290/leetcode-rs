@@ -46,3 +46,8 @@ mv cargo-spellcheck-v0.14.0-x86_64-unknown-linux-gnu cargo-spellcheck
 # install commitlint
 apt install -y nodejs npm
 npm install --save-dev @commitlint/{cli,config-conventional}
+npm install --save-dev husky
+prefligit install # BEFORE npx husky init
+npx husky init
+echo "npx --no -- commitlint --edit \$1" > .husky/commit-msg
+mv .git/hooks/pre-commit .husky/pre-commit
