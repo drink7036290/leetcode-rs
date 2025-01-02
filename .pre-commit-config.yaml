@@ -38,7 +38,7 @@ repos:
         name: link validation
         language: system
         entry: lychee
-        args: ["--no-progress", "--cache"]
+        args: ["--no-progress"] # , "--cache"
 
       - id: sorted-dictionary-check
         name: make sure dictionary words are sorted and unique

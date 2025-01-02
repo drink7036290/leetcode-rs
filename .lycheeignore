@@ -1,2 +1,3 @@
 # The Grafana instance is not stable and may occasionally keep reloading without response.
-https://planetsacademe0j.grafana.net/d/fe5wp1pxzgzr4a/leetcode-rs
+# Keep waking up the instance via workflows/links.yml
+# https://planetsacademe0j.grafana.net/d/fe5wp1pxzgzr4a/leetcode-rs
