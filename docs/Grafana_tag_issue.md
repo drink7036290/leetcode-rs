@@ -5,7 +5,7 @@
 When querying InfluxDB 3.0 with SQL in Grafana, a field named `impl` with
 datatype `Dictionary(Int32, Utf8)`(which is a columnar optimization used in
 InfluxDB 3.0 for efficient storage) is treated as a string field instead of a
-tag. This causes data from differnet tags to be mixed together instead of
+tag. This causes data from different tags to be mixed together instead of
 different data series. This differs from the behavior when using Flux, where
 "impl" is correctly recognized as a tag.
 
