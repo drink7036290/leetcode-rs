@@ -43,11 +43,11 @@ runs:
     - name: install cargo-deny,cargo-spellcheck
       uses: taiki-e/install-action@v2
       with:
-        tool: cargo-deny,cargo-spellcheck
+        tool: cargo-deny,cargo-spellcheck,typos
 
     - uses: ./.github/actions/elapsed-time
       with:
-        statement: "install cargo-deny,cargo-spellcheck"
+        statement: "install cargo-deny,cargo-spellcheck,typos"
 
     # ===============================================
 
@@ -56,12 +56,12 @@ runs:
     #
     # b)  doesn’t cache binaries, but the related metadata will,
     #     so caused issues like “cargo binstall” detect binaries
-    #     are installed, but actually they don’t exist! These 
-    #     binary installations should be put BEFORE this 
+    #     are installed, but actually they don’t exist! These
+    #     binary installations should be put BEFORE this
     #     rust-cache action
     #
     # c)  doesn’t remove user's bin files, the "Any files in
-    #     ~/.cargo/bin that were present before the action 
+    #     ~/.cargo/bin that were present before the action
     #     ran (for example rustc)." says the cache itself
 
     - uses: Swatinem/rust-cache@v2

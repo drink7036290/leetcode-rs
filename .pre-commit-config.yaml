@@ -40,6 +40,11 @@ repos:
         entry: lychee
         args: ["--no-progress"] # , "--cache"
 
+      - id: typos
+        name: typos
+        language: system
+        entry: typos
+
       - id: sorted-dictionary-check
         name: make sure dictionary words are sorted and unique
         language: system
