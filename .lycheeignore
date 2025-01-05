@@ -1,3 +1,6 @@
-# The Grafana instance is not stable and may occasionally keep reloading without response.
-# Keep waking up the instance via workflows/links.yml
-# https://planetsacademe0j.grafana.net/d/fe5wp1pxzgzr4a/leetcode-rs
+# Ignore this Grafana instance since it may occasionally keep reloading
+# without response.
+# Alternatively, keep waking up the instance via:
+# - UptimeRobot
+# - EasyCron
+https://planetsacademe0j.grafana.net/d/fe5wp1pxzgzr4a/leetcode-rs
